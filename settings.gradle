@@ -1,0 +1,3 @@
+rootProject.name = 'snek'
+include 'backend', 'frontend'
+
