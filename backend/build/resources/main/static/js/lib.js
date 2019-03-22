@@ -10,38 +10,47 @@ snek1.colourTwo = convertColor("#6ff0fc", "rgba", 1);
 snek1.headStartGridX = 1;
 snek1.headStartGridY = 11;
 snek1.headStartDirection = Direction.SOUTH;
-snek1.nextMove = null;
+snek1.neckDirection = Direction.SOUTH;
+snek1.nextMove = Direction.SOUTH;
 snek1.pieces = {};
 snek2.colourOne = convertColor("#811ca5", "rgba", 1);
 snek2.colourTwo = convertColor("#ff44f5", "rgba", 1);
 snek2.headStartGridX = 33;
 snek2.headStartGridY = 7;
 snek2.headStartDirection = Direction.NORTH;
-snek2.nextMove = null;
+snek1.neckDirection = Direction.NORTH;
+snek2.nextMove = Direction.NORTH;
 snek2.pieces = {};
 snek3.colourOne = convertColor("#ef9907", "rgba", 1);
 snek3.colourTwo = convertColor("#efdb43", "rgba", 1);
 snek3.headStartGridX = 15;
 snek3.headStartGridY = 1;
 snek3.headStartDirection = Direction.WEST;
-snek3.nextMove = null;
+snek1.neckDirection = Direction.WEST;
+snek3.nextMove = Direction.WEST;
 snek3.pieces = {};
 snek4.colourOne = convertColor("#595858", "rgba", 1);
 snek4.colourTwo = convertColor("#d8d8d8", "rgba", 1);
 snek4.headStartGridX = 19;
 snek4.headStartGridY = 17;
 snek4.headStartDirection = Direction.EAST;
-snek4.nextMove = null;
+snek1.neckDirection = Direction.EAST;
+snek4.nextMove = Direction.EAST;
 snek4.pieces = {};
 
 const sneks = [snek1, snek2, snek3, snek4];
+
+const drops = {};
+drops.food = null;
+drops.speedup = null;
+drops.slowdown = null;
 
 function updateSnekPieces(snekIndex, pieceIndex, snekPiece) {
     sneks[snekIndex].pieces[pieceIndex] = snekPiece;
 }
 
-function printSnekPiecesArrays(noOfSneks) {
-  for (let i = 0; i < noOfSneks; i++) {
+function printSnekPiecesArrays(_noOfSneks) {
+  for (let i = 0; i < _noOfSneks; i++) {
     let res = "Snek[" + i + "]: ";
     zog("SIZE:" + Object.keys(sneks[i].pieces).length);
     for (let j = 0; j < Object.keys(sneks[i].pieces).length; j++) {

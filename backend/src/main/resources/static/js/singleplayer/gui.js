@@ -8,7 +8,6 @@ function init_gui(_stage, _stageW, _stageH, _noOfSneks) {
   stageH = _stageH;
 
   // init_grid_mapper(_stage, _stageW, _stageH);
-  init_controller(_noOfSneks);
 
   // 589145 94c185
   var backgroundColour = convertColor("#94c185", "rgba", 1);
@@ -26,6 +25,8 @@ function init_gui(_stage, _stageW, _stageH, _noOfSneks) {
   stage.update();
 
   makeSnek(_noOfSneks);
+
+  init_controller(_noOfSneks);
 
   stage.update();
 }
@@ -64,16 +65,54 @@ function makeSnek(_noOfSneks) {
       updateSnekPieces(i, j+1, body);
     }
   }
-  // Debug
-  printSnekPiecesArrays(_noOfSneks);
 }
 
 function turnHead(newDirection) {
   updateHeadDirection(sneks[0].pieces[0], newDirection);
 }
 
-function updateSneks(newHeadPositions) {
+function updateSneks(_noOfSnakes) {
+  for (let i = 0; i < _noOfSnakes; i++) {
+    if (sneks[i] !== null) {
+      for (let j = 0; j < Object.keys(sneks[i].pieces).length; j++) {
+        moveSnekPiece(sneks[i].pieces[j], sneks[i].pieces[j].xGrid, sneks[i].pieces[j].yGrid);
+      }
+    }
+  }
+  stage.update();
+}
 
+function addItemToStage(item) {
+  let square = new Rectangle(37, 37, red);
+  square.addTo(stage);
+  square.pos(convertGridToCoord(item.xGrid), convertGridToCoord(item.yGrid));
+  item.center(square);
+  item.addTo(stage);
+  item.removeFrom(square);
+  square.removeFrom(stage);
+  stage.update();
+}
+
+function removeItemFromStage(item) {
+  item.removeFrom(stage);
+  stage.update();
+}
+
+
+function killSnek(snekIndex) {
+  let snekToTheSlaughter = sneks[snekIndex];
+  sneks[snekIndex] = null;
+
+  for (let i = 0; i < Object.keys(snekToTheSlaughter.pieces).length; i++) {
+    snekToTheSlaughter.pieces[i].animate({
+      props:{alpha:0},
+      time:450,
+      from:false
+    });
+  }
+
+  // If singleplayer - stop game
+  gameOver = true;
 }
 
 

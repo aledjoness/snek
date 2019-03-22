@@ -9,9 +9,6 @@
 // }
 
 function convertGridToCoord(tile) {
-  // if (tile < 0 || tile > stageW) {
-  //   return null;
-  // }
   return (tile * 36) + 3; // now round up or down ...
 }
 

@@ -6,6 +6,7 @@
 <script src="/js/singleplayer/gui.js"></script>
 <script src="/js/singleplayer/snek.js"></script>
 <script src="/js/grid-mapper.js"></script>
+<script src="/js/drops.js"></script>
 <script src="/js/controller.js"></script>
 </head>
 <body>
@@ -71,13 +72,9 @@
     var startLabel = new Label("Select Number of Other Sneks"); // ffb200 ffc030 e21818
     startLabel.center(startLabelBox);
 
-    var oneButton = new Button(100, 100, "1", "green", convertColor("#22c11d", "rgba", 1)).center(stage).mov(-150, 0);
-    var twoButton = new Button(100, 100, "2", "orange", convertColor("#ffc030", "rgba", 1)).center(stage);
-    var threeButton = new Button(100, 100, "3", convertColor("#c91616", "rgba", 1), convertColor("#ff0000", "rgba", 1)).center(stage).mov(150, 0);
-
-    // var playButton = new Button(140, 60, "Play", frame.grey, frame.dark)
-    //         .scaleTo(stage, 20) // also see zim.Layout() for more complex scaling
-    //         .center(stage); // centers on stage - addTo() and others as well!
+    var oneButton = new Button(100, 100, "0", "green", convertColor("#22c11d", "rgba", 1)).center(stage).mov(-150, 0);
+    var twoButton = new Button(100, 100, "1", "orange", convertColor("#ffc030", "rgba", 1)).center(stage);
+    var threeButton = new Button(100, 100, "2", convertColor("#c91616", "rgba", 1), convertColor("#ff0000", "rgba", 1)).center(stage).mov(150, 0);
 
     stage.update();
 
@@ -85,19 +82,19 @@
       stage.removeAllChildren();
       stage.update();
 
-      init_gui(stage, stageW, stageH, 2);
+      init_gui(stage, stageW, stageH, 1);
     });
     twoButton.on("click", function () {
       stage.removeAllChildren();
       stage.update();
 
-      init_gui(stage, stageW, stageH, 3);
+      init_gui(stage, stageW, stageH, 2);
     });
     threeButton.on("click", function () {
       stage.removeAllChildren();
       stage.update();
 
-      init_gui(stage, stageW, stageH, 4);
+      init_gui(stage, stageW, stageH, 3);
     });
 
   }); // end of ready

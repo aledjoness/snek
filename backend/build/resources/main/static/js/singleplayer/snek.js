@@ -12,7 +12,7 @@ function makeSnekHead(direction) {
 
 function makeSnekBody(snekIndex, jValue) {
   let bodyColour = (jValue % 2 === 0 ? sneks[snekIndex].colourOne : sneks[snekIndex].colourTwo);
-  return new zim.Rectangle(37, 37, bodyColour); // either 36, 37 or 37, 36 or 37, 37 ...
+  return new Rectangle(37, 37, bodyColour); // either 36, 37 or 37, 36 or 37, 37 ...
 }
 
 function attachSnekPiece(snekBody, prevGridTileX, prevGridTileY, directionToAddTo) {
@@ -32,23 +32,32 @@ function attachSnekPiece(snekBody, prevGridTileX, prevGridTileY, directionToAddT
   return {newPrevGridTileX: prevGridTileX, newPrevGridTileY: prevGridTileY};
 }
 
+function addPieceToTail(snekBody, snekIndex, x, y, newIndex) {
+  console.log("Adding piece to " + snekIndex + " at " + x + ", " + y);
+
+  snekBody.addTo(stage).pos(convertGridToCoord(x), convertGridToCoord(y));
+
+  updateSnekPieces(snekIndex, newIndex, snekBody);
+}
+
 function moveSnekPiece(snekBody, newGridX, newGridY) {
+  //zog("Snek bodyX: " + snekBody.x + " snek bodyY: " + snekBody.y);
   snekBody.pos(convertGridToCoord(newGridX), convertGridToCoord(newGridY));
 }
 
 function updateHeadDirection(head, newDirection) {
   if (newDirection === "Left") {
-    zog("Old head direction: " + head.direction);
+    //zog("Old head direction: " + head.direction);
     head.direction = leftDirection(head.direction);
-    zog("New head direction: " + head.direction);
+    //zog("New head direction: " + head.direction);
   } else if (newDirection === "Right") {
-    zog("Old head direction: " + head.direction);
+    //zog("Old head direction: " + head.direction);
     head.direction = rightDirection(head.direction);
-    zog("New head direction: " + head.direction);
+    //zog("New head direction: " + head.direction);
   } else if (newDirection === "Opposite") {
-    zog("Old head direction: " + head.direction);
+    //zog("Old head direction: " + head.direction);
     head.direction = oppositeDirection(head.direction);
-    zog("New head direction: " + head.direction);
+    //zog("New head direction: " + head.direction);
   }
   sneks[0].nextMove = head.direction;
   positionEyes(head, head.eye1, head.eye2, head.direction);
