@@ -34,6 +34,8 @@ function attachSnekPiece(snekBody, prevGridTileX, prevGridTileY, directionToAddT
 
 function addPieceToTail(snekBody, snekIndex, x, y, newIndex) {
   snekBody.addTo(stage).pos(convertGridToCoord(x), convertGridToCoord(y));
+  snekBody.xGrid = x;
+  snekBody.yGrid = y;
   updateSnekPieces(snekIndex, newIndex, snekBody);
 }
 

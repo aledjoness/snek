@@ -24,9 +24,11 @@ function init_gui(_stage, _stageW, _stageH, _noOfSneks) {
   printGrid();
   stage.update();
 
+  init_controller(_noOfSneks);
+
   makeSnek(_noOfSneks);
 
-  init_controller(_noOfSneks);
+  // init_controller(_noOfSneks);
 
   stage.update();
 }

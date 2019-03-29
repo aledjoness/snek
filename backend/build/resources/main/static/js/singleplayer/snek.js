@@ -33,31 +33,23 @@ function attachSnekPiece(snekBody, prevGridTileX, prevGridTileY, directionToAddT
 }
 
 function addPieceToTail(snekBody, snekIndex, x, y, newIndex) {
-  console.log("Adding piece to " + snekIndex + " at " + x + ", " + y);
-
   snekBody.addTo(stage).pos(convertGridToCoord(x), convertGridToCoord(y));
-
+  snekBody.xGrid = x;
+  snekBody.yGrid = y;
   updateSnekPieces(snekIndex, newIndex, snekBody);
 }
 
 function moveSnekPiece(snekBody, newGridX, newGridY) {
-  //zog("Snek bodyX: " + snekBody.x + " snek bodyY: " + snekBody.y);
   snekBody.pos(convertGridToCoord(newGridX), convertGridToCoord(newGridY));
 }
 
 function updateHeadDirection(head, newDirection) {
   if (newDirection === "Left") {
-    //zog("Old head direction: " + head.direction);
     head.direction = leftDirection(head.direction);
-    //zog("New head direction: " + head.direction);
   } else if (newDirection === "Right") {
-    //zog("Old head direction: " + head.direction);
     head.direction = rightDirection(head.direction);
-    //zog("New head direction: " + head.direction);
   } else if (newDirection === "Opposite") {
-    //zog("Old head direction: " + head.direction);
     head.direction = oppositeDirection(head.direction);
-    //zog("New head direction: " + head.direction);
   }
   sneks[0].nextMove = head.direction;
   positionEyes(head, head.eye1, head.eye2, head.direction);

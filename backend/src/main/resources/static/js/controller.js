@@ -1,6 +1,7 @@
 let noOfSnakes = 0;
 let gameOver = false;
 let rezz;
+let grid;
 
 function init_controller(_noOfSnakes) {
   noOfSnakes = _noOfSnakes;
@@ -8,7 +9,7 @@ function init_controller(_noOfSnakes) {
   for (let i = 0; i < 100; i++) {
     rezz[i] = 0;
   }
-  //randomlyPlaceFood(); // new items to be added should be event-driven
+  initGrid();
   gameClock();
 
   window.addEventListener("keydown", function (event) {
@@ -16,11 +17,25 @@ function init_controller(_noOfSnakes) {
   });
 }
 
+function initGrid() {
+  grid = new Array(35);
+  for (let i = 0; i < grid.length; i++) {
+    grid[i] = new Array(19);
+  }
+
+  for (let i = 0; i < grid.length; i++) {
+    for (let j = 0; j < grid[i].length; j++) {
+      grid[i][j] = 0;
+    }
+  }
+  //console.log(grid);
+}
+
 function gameClock() {
-  let clock = interval(130, function () {
+  let clock = interval(110, function () {
     makeSnekMoves();
     randomlyPlaceFood();
-    randomlyPlaceSpecialDrop();
+    randomlyPlaceSpecialDrop(false);
     // TODO: Handle end game
     if (gameOver) {
       clock.clear();
@@ -84,36 +99,53 @@ function makeSnekMoves() {
       if (nextMoveIsInBounds(sneks[i].pieces[0].xGrid, sneks[i].pieces[0].yGrid, sneks[i].nextMove)) {
         nextHeadPositions[i] = nextHeadGridLocation(sneks[i].pieces[0].xGrid, sneks[i].pieces[0].yGrid, sneks[i].nextMove);
 
-        let growSnek = false;
-        if (snekEatsFood(nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
-          growSnek = true;
-        }
+        if (snekEatsItselfOrOtherSnek(i, nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
+          killSnek(i);
+        } else {
+          grid[nextHeadPositions[i].nextX][nextHeadPositions[i].nextY] = 1;
 
-        let nextXMove = nextHeadPositions[i].nextX, nextYMove = nextHeadPositions[i].nextY;
-        for (let j = 0; j < Object.keys(sneks[i].pieces).length; j++) {
-          let prevXPlacement = sneks[i].pieces[j].xGrid, prevYPlacement = sneks[i].pieces[j].yGrid;
-
-          if (j === Object.keys(sneks[i].pieces).length - 1 && growSnek) {
-            eatFood(i, sneks[i].pieces[j].xGrid, sneks[i].pieces[j].yGrid, j+1);
-            growSnek = false;
+          let growSnek = false;
+          if (snekEatsFood(nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
+            growSnek = true;
           }
 
-          sneks[i].pieces[j].xGrid = nextXMove;
-          sneks[i].pieces[j].yGrid = nextYMove;
+          if (snekSpeedsUp(nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
+            console.log("speeding up");
+          }
 
-          nextXMove = prevXPlacement;
-          nextYMove = prevYPlacement;
+          if (snekSlowsDown(nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
+            console.log("slowing down");
+          }
+
+          if (snekSelfEats(nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
+            console.log("self eat");
+            absorbSelfEat(i);
+          }
+
+          if (snekReflects(nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
+            console.log("reflecting");
+          }
+
+          let nextXMove = nextHeadPositions[i].nextX, nextYMove = nextHeadPositions[i].nextY;
+          for (let j = 0; j < Object.keys(sneks[i].pieces).length; j++) {
+            let prevXPlacement = sneks[i].pieces[j].xGrid, prevYPlacement = sneks[i].pieces[j].yGrid;
+
+            if (j === Object.keys(sneks[i].pieces).length - 1) {
+              if (growSnek) {
+                eatFood(i, sneks[i].pieces[j].xGrid, sneks[i].pieces[j].yGrid, j + 1);
+                growSnek = false;
+              } else {
+                grid[sneks[i].pieces[j].xGrid][sneks[i].pieces[j].yGrid] = 0;
+              }
+            }
+            sneks[i].pieces[j].xGrid = nextXMove;
+            sneks[i].pieces[j].yGrid = nextYMove;
+
+            nextXMove = prevXPlacement;
+            nextYMove = prevYPlacement;
+          }
+          sneks[i].neckDirection = sneks[i].nextMove;
         }
-        sneks[i].neckDirection = sneks[i].nextMove;
-
-        // If next move is drops / other snek respond appropriately
-        // console.log(sneks[0].pieces[0].xGrid + " , " + sneks[0].pieces[0].yGrid);
-        // TODO: Try obj.hitTestRect(other, num, boundsCheck)
-        if (squareNotFree(nextXMove, nextYMove)) {
-          console.log("Ruh Roh");
-        }
-
-
       } else {
         nextHeadPositions[i] = null;
         killSnek(0);
@@ -123,42 +155,63 @@ function makeSnekMoves() {
   updateSneks(noOfSnakes);
 }
 
-function snekEatsFood(x, y) {
-  if (drops.food !== null && x === drops.food.xGrid && y === drops.food.yGrid) {
-    return true;
+function snekEatsItselfOrOtherSnek(snekIndex, nextX, nextY) {
+  if (grid[nextX][nextY] === 1) {
+    if (sneks[snekIndex].selfEat) { // check if another snek
+      for (let i = 0; i < Object.keys(sneks[snekIndex].pieces).length; i++) {
+        if (nextX === sneks[snekIndex].pieces[i].xGrid && nextY === sneks[snekIndex].pieces[i].yGrid) {
+          return false;
+        }
+      }
+    } else {
+      return true;
+    }
   }
+  return false;
+}
+
+function snekEatsFood(nextX, nextY) {
+  return drops.food !== null && nextX === drops.food.xGrid && nextY === drops.food.yGrid;
+
 }
 
 function eatFood(snekIndex, x, y, newIndex) {
-  let body = makeSnekBody(snekIndex, Object.keys(sneks[snekIndex].pieces).length-1);
+  let body = makeSnekBody(snekIndex, Object.keys(sneks[snekIndex].pieces).length - 1);
   addPieceToTail(body, snekIndex, x, y, newIndex);
   removeItemFromStage(drops.food);
   drops.food = null;
 }
 
 function snekSpeedsUp(x, y) {
-  if (drops.speedup !== null && x === drops.speedup.xGrid && y === drops.speedup.yGrid) {
-    return true;
-  }
+  return drops.speedup !== null && x === drops.speedup.xGrid && y === drops.speedup.yGrid;
 }
 
 function snekSlowsDown(x, y) {
-  if (drops.slowdown !== null && x === drops.slowdown.xGrid && y === drops.slowdown.yGrid) {
-    return true;
-  }
+  return drops.slowdown !== null && x === drops.slowdown.xGrid && y === drops.slowdown.yGrid;
+}
+
+function snekSelfEats(x, y) {
+  return drops.selfEat !== null && x === drops.selfEat.xGrid && y === drops.selfEat.yGrid;
+}
+
+function absorbSelfEat(snekIndex) {
+  sneks[snekIndex].selfEat = true;
+  removeItemFromStage(drops.selfEat);
+  drops.selfEat = null;
+  // add self eat to head
+  let mse = createMiniSelfEat();
+  mse.center(sneks[snekIndex].pieces[0]);
+}
+
+function snekReflects(x, y) {
+  return drops.reflection !== null && x === drops.reflection.xGrid && y === drops.reflection.yGrid;
+}
+
+function absorbReflection(snekIndex) {
+  // invert head colour
 }
 
 function randomlyPlaceFood() {
-  // Place random item at random location
-  // Items to choose from: Manga, speed up, slow down, reflection, self-immunity
-  // Changes: Manga 14/20, speed-up 2/20, slow-down 2/20, reflection 1/20, self-immunity 1/20
-  //addItemToStage(createFood());
-  // Update: always place food, but maybe sometimes place something else
-
-  // Decide whether to also place another item
-  // Also need to consider removing an item (maybe put a timer on it)
-
-
   if (drops.food === null) {
     let freeCoords = getFreeCoords();
     let food = createFood();
@@ -169,44 +222,95 @@ function randomlyPlaceFood() {
   }
 }
 
-function randomlyPlaceSpecialDrop() {
-  if (drops.speedup === null || drops.slowdown === null) {
-    let res = Math.floor(Math.random() * Math.floor(100));
-    rezz[res]++;
-    if (res === 0) {
-      if (drops.speedup !== null) {
-        let sd = createSlowdown();
-        let freeCoords = getFreeCoords();
-        sd.xGrid = freeCoords.x;
-        sd.yGrid = freeCoords.y;
-        drops.slowdown = sd;
-        addItemToStage(sd);
-      } else if (drops.slowdown !== null) {
-        let su = createSpeedup();
-        let freeCoords = getFreeCoords();
-        su.xGrid = freeCoords.x;
-        su.yGrid = freeCoords.y;
-        drops.speedup = su;
-        addItemToStage(su);
-      } else {
-        if (Math.floor(Math.random() * Math.floor(2)) === 0) {
-          let su = createSpeedup();
-          let freeCoords = getFreeCoords();
-          su.xGrid = freeCoords.x;
-          su.yGrid = freeCoords.y;
-          drops.speedup = su;
-          addItemToStage(su);
-        } else {
-          let sd = createSlowdown();
-          let freeCoords = getFreeCoords();
-          sd.xGrid = freeCoords.x;
-          sd.yGrid = freeCoords.y;
-          drops.slowdown = sd;
-          addItemToStage(sd);
+function randomlyPlaceSpecialDrop(testing) {
+  if (testing) {
+    let sd = createSlowdown();
+    sd.xGrid = 10;
+    sd.yGrid = 10;
+    addItemToStage(sd);
+
+    let r = createReflection();
+    r.xGrid = 15;
+    r.yGrid = 15;
+    addItemToStage(r);
+
+    let cf = createSelfEat();
+    cf.xGrid = 18;
+    cf.yGrid = 18;
+    addItemToStage(cf);
+
+    let mf = createMiniSelfEat();
+    mf.xGrid = 17;
+    mf.yGrid = 17;
+    addItemToStage(mf);
+  } else {
+    if (drops.speedup === null || drops.slowdown === null) {
+      let res = Math.floor(Math.random() * Math.floor(10)); // TODO: set to 100 for live
+      rezz[res]++;
+      if (res === 0) { // placing drop
+        let totalDrops = ["speedup", "slowdown", "selfEat", "reflection"];
+        let nonPlacedDrops = populateNonPlacedDrops();
+
+        let dropsToChooseFrom = totalDrops.filter(value => nonPlacedDrops.includes(value));
+        console.log("D: " + dropsToChooseFrom);
+
+        if (dropsToChooseFrom.length > 0) {
+          let result = Math.floor(Math.random() * Math.floor(dropsToChooseFrom.length));
+          let dropToPlace = dropsToChooseFrom[result];
+          if (dropToPlace === "speedup") {
+            let su = createSpeedup();
+            let freeCoords = getFreeCoords();
+            su.xGrid = freeCoords.x;
+            su.yGrid = freeCoords.y;
+            drops.speedup = su;
+            addItemToStage(su);
+            console.log("adding su");
+          } else if (dropToPlace === "slowdown") {
+            let sd = createSlowdown();
+            let freeCoords = getFreeCoords();
+            sd.xGrid = freeCoords.x;
+            sd.yGrid = freeCoords.y;
+            drops.slowdown = sd;
+            addItemToStage(sd);
+            console.log("adding sd");
+          } else if (dropToPlace === "selfEat") {
+            let se = createSelfEat();
+            let freeCoords = getFreeCoords();
+            se.xGrid = freeCoords.x;
+            se.yGrid = freeCoords.y;
+            drops.selfEat = se;
+            addItemToStage(se);
+            console.log("adding se");
+          } else if (dropToPlace === "reflection") {
+            let r = createReflection();
+            let freeCoords = getFreeCoords();
+            r.xGrid = freeCoords.x;
+            r.yGrid = freeCoords.y;
+            drops.reflection = r;
+            addItemToStage(r);
+            console.log("adding r");
+          }
         }
       }
     }
   }
+}
+
+function populateNonPlacedDrops() {
+  let result = [];
+  if (!drops.speedup) {
+    result.push("speedup");
+  }
+  if (!drops.slowdown) {
+    result.push("slowdown");
+  }
+  if (!drops.selfEat) {
+    result.push("selfEat");
+  }
+  if (!drops.reflection) {
+    result.push("reflection");
+  }
+  return result;
 }
 
 function getFreeCoords() {

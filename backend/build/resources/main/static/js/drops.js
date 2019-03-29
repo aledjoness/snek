@@ -31,3 +31,39 @@ function createSlowdown() {
 
   return base;
 }
+
+function createSelfEat() {
+  let c = new Circle(10, "black");
+  let c2 = new Circle(8, "white");
+  let c3 = new Circle(4, "purple");
+
+  c2.center(c);
+  c3.center(c2);
+
+  return c;
+}
+
+function createMiniSelfEat() {
+  let c = new Circle(8, "black");
+  let c2 = new Circle(6, "white");
+  let c3 = new Circle(3, "purple");
+
+  c2.center(c);
+  c3.center(c2);
+
+  return c;
+}
+
+function createReflection() {
+  let r = new Rectangle(20, 20, "blue", "white");
+  let r2= new Rectangle(10, 10, "orange", "white");
+  let r3 = new Rectangle(7, 7, "green");
+
+  r3.rot(45);
+  r3.center(r2);
+  r2.rot(45);
+  r2.center(r);
+  r.rot(45);
+
+  return r;
+}
