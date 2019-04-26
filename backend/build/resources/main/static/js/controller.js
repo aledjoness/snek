@@ -10,12 +10,7 @@ function init_controller(_noOfSnakes) {
     rezz[i] = 0;
   }
   initGrid();
-  gameClock();
-  zog("Starting again");
-
-  window.addEventListener("keydown", function (event) {
-    processKeyPressEvent(event);
-  });
+  countdown();
 }
 
 function initGrid() {
@@ -31,21 +26,64 @@ function initGrid() {
   }
 }
 
+function countdown() {
+  let timeoutMillis = 700;
+  let labSize = 75;
+  let color = "white";
+  let outlineColor = "black";
+  let lab = new Label({
+    text: "3", size: labSize, color: color, outlineColor: outlineColor
+  });
+  lab.center(stage);
+  timeout(timeoutMillis, () => {
+    removeItemFromStage(lab);
+    lab = new Label({
+      text: "2", size: labSize, color: color, outlineColor: outlineColor
+    });
+    lab.center(stage);
+    stage.update();
+    timeout(timeoutMillis, () => {
+      removeItemFromStage(lab);
+      lab = new Label({
+        text: "1", size: labSize, color: color, outlineColor: outlineColor
+      });
+      lab.center(stage);
+      stage.update();
+      timeout(timeoutMillis, () => {
+        removeItemFromStage(lab);
+        lab = new Label({
+          text: "GO!", size: labSize, color: color, outlineColor: outlineColor
+        });
+        lab.center(stage);
+        stage.update();
+        timeout(timeoutMillis, () => {
+          removeItemFromStage(lab);
+          gameClock();
+          zog("Starting again");
+          window.addEventListener("keydown", processKeyPressEvent);
+        })
+      })
+    })
+  })
+}
+
+
 function gameClock() {
   let clock = interval(100, function () {
     makeSnekMoves();
-    randomlyPlaceFood();
-    randomlyPlaceSpecialDrop(false);
+    //randomlyPlaceFood();
+    randomlyPlaceDrops(false);
     // TODO: Handle end game
     if (gameOver) {
       clock.clear();
       zog("Game over");
+      window.removeEventListener("keydown", processKeyPressEvent);
       playAgain();
     }
   });
 }
 
-function processKeyPressEvent(event) {
+let processKeyPressEvent = (event) => {
   let keyPressed = event.key;
   if (sneks[0] !== null) {
     if (sneks[0].pieces[0].direction === Direction.NORTH) {
@@ -90,7 +128,7 @@ function processKeyPressEvent(event) {
       }
     }
   }
-}
+};
 
 function makeSnekMoves() {
   let nextHeadPositions = [];
@@ -139,11 +177,11 @@ function makeSnekMoves() {
 
             if (j === Object.keys(sneks[i].pieces).length - 1) {
               if (growSnek) {
-                //console.log("LAST PIECE COORDS: (" + sneks[i].pieces[j].xGrid + "," + sneks[i].pieces[j].yGrid + ")");
-                console.log("LAST PIECE COORDS: (" + nextXMove + "," + nextYMove + ")");
                 eatFood(i, nextXMove, nextYMove, j + 1);
                 printSnekPiecesArrays(1);
                 growSnek = false;
+                // TODO: bring head to front
+                sneks[i].pieces[0].addTo(stage);
               } else {
                 grid[sneks[i].pieces[j].xGrid][sneks[i].pieces[j].yGrid] = 0;
               }
@@ -181,9 +219,7 @@ function snekEatsFood(nextX, nextY) {
 }
 
 function eatFood(snekIndex, x, y, newIndex) {
-  // TODO: this sometimes leaves empty snek pieces -- not empty, 'tail' is just off by a couple of grid spaces
-  console.log("Eating food");
-  let body = makeSnekBody(snekIndex, newIndex-1);
+  let body = makeSnekBody(snekIndex, newIndex - 1);
   addPieceToTail(body, snekIndex, x, y, newIndex);
   removeItemFromStage(drops.food);
   drops.food = null;
@@ -258,7 +294,7 @@ function randomlyPlaceFood() {
   }
 }
 
-function randomlyPlaceSpecialDrop(testing) {
+function randomlyPlaceDrops(testing) {
   if (testing) {
     let sd = createSlowdown();
     sd.xGrid = 10;
@@ -324,6 +360,7 @@ function randomlyPlaceSpecialDrop(testing) {
         }
       }
     }
+    randomlyPlaceFood();
   }
 }
 

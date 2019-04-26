@@ -48,6 +48,7 @@ function printGrid() {
 
 function makeSnek(_noOfSneks) {
   for (let i = 0; i < _noOfSneks; i++) {
+    sneks[i].pieces = {};
 
     // TODO: make init snek default values method
     if (sneks[i].selfEat) {
