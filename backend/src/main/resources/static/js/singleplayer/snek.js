@@ -1,4 +1,4 @@
-function makeSnekHead(direction) {
+function makeSnekHead(direction, selfEat, snekIndex) {
   let head = new Rectangle(37, 37, "red");
   let eye1 = new Rectangle(4, 4, "black");
   let eye2 = new Rectangle(4, 4, "black");
@@ -7,6 +7,10 @@ function makeSnekHead(direction) {
 
   head.eye1 = eye1;
   head.eye2 = eye2;
+
+  if (selfEat) {
+    sneks[snekIndex].selfEatPiece.center(head);
+  }
   return head;
 }
 
@@ -26,8 +30,8 @@ function makeInvertedHead(direction, selfEat, snekIndex) {
   return head;
 }
 
-function makeSnekBody(snekIndex, jValue) {
-  let bodyColour = (jValue % 2 === 0 ? sneks[snekIndex].colourOne : sneks[snekIndex].colourTwo);
+function makeSnekBody(snekIndex, nextPieceLength) {
+  let bodyColour = (nextPieceLength % 2 === 0 ? sneks[snekIndex].colourOne : sneks[snekIndex].colourTwo);
   return new Rectangle(37, 37, bodyColour); // either 36, 37 or 37, 36 or 37, 37 ...
 }
 
@@ -49,7 +53,8 @@ function attachSnekPiece(snekBody, prevGridTileX, prevGridTileY, directionToAddT
 }
 
 function addPieceToTail(snekBody, snekIndex, x, y, newIndex) {
-  snekBody.addTo(stage).pos(convertGridToCoord(x), convertGridToCoord(y));
+  snekBody.addTo(stage).pos(convertGridToCoord(x), convertGridToCoord(y)); // need to adjust x/y value by 1/-1
+  console.log("Adding to (" + x + "," + y + ")");
   snekBody.xGrid = x;
   snekBody.yGrid = y;
   updateSnekPieces(snekIndex, newIndex, snekBody);

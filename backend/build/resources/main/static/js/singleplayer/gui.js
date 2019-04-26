@@ -57,7 +57,7 @@ function makeSnek(_noOfSneks) {
     }
     sneks[i].reflection = false;
 
-    let snekHead = makeSnekHead(sneks[i].headStartDirection);
+    let snekHead = makeSnekHead(sneks[i].headStartDirection, false, i);
     snekHead.addTo(stage).pos(convertGridToCoord(sneks[i].headStartGridX), convertGridToCoord(sneks[i].headStartGridY));
     snekHead.xGrid = sneks[i].headStartGridX;
     snekHead.yGrid = sneks[i].headStartGridY;

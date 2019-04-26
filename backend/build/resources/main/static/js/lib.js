@@ -64,7 +64,7 @@ drops.selfEat = null;
 drops.reflection = null;
 
 function updateSnekPieces(snekIndex, pieceIndex, snekPiece) {
-  console.log("x: " + snekPiece.xGrid + " y: " + snekPiece.yGrid);
+  //console.log("x: " + snekPiece.xGrid + " y: " + snekPiece.yGrid);
   grid[snekPiece.xGrid][snekPiece.yGrid] = 1;
   sneks[snekIndex].pieces[pieceIndex] = snekPiece;
 }

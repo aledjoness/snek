@@ -11,6 +11,7 @@ function init_controller(_noOfSnakes) {
   }
   initGrid();
   gameClock();
+  zog("Starting again");
 
   window.addEventListener("keydown", function (event) {
     processKeyPressEvent(event);
@@ -130,25 +131,29 @@ function makeSnekMoves() {
           for (let j = 0; j < Object.keys(sneks[i].pieces).length; j++) {
             let prevXPlacement = sneks[i].pieces[j].xGrid, prevYPlacement = sneks[i].pieces[j].yGrid;
 
-            if (j === Object.keys(sneks[i].pieces).length - 1) {
-              if (growSnek) {
-                eatFood(i, sneks[i].pieces[j].xGrid, sneks[i].pieces[j].yGrid, j + 1);
-                growSnek = false;
-              } else {
-                grid[sneks[i].pieces[j].xGrid][sneks[i].pieces[j].yGrid] = 0;
-              }
-            }
             sneks[i].pieces[j].xGrid = nextXMove;
             sneks[i].pieces[j].yGrid = nextYMove;
 
             nextXMove = prevXPlacement;
             nextYMove = prevYPlacement;
+
+            if (j === Object.keys(sneks[i].pieces).length - 1) {
+              if (growSnek) {
+                //console.log("LAST PIECE COORDS: (" + sneks[i].pieces[j].xGrid + "," + sneks[i].pieces[j].yGrid + ")");
+                console.log("LAST PIECE COORDS: (" + nextXMove + "," + nextYMove + ")");
+                eatFood(i, nextXMove, nextYMove, j + 1);
+                printSnekPiecesArrays(1);
+                growSnek = false;
+              } else {
+                grid[sneks[i].pieces[j].xGrid][sneks[i].pieces[j].yGrid] = 0;
+              }
+            }
           }
           sneks[i].neckDirection = sneks[i].nextMove;
         }
       } else {
         nextHeadPositions[i] = null;
-        killSnek(0);
+        killSnek(i);
       }
     }
   }
@@ -163,7 +168,7 @@ function snekEatsItselfOrOtherSnek(snekIndex, nextX, nextY) {
           return false;
         }
       }
-    } else {
+    } else { // TODO: this logic broke fam, snek goes straight through other snek
       return true;
     }
   }
@@ -176,7 +181,9 @@ function snekEatsFood(nextX, nextY) {
 }
 
 function eatFood(snekIndex, x, y, newIndex) {
-  let body = makeSnekBody(snekIndex, Object.keys(sneks[snekIndex].pieces).length - 1);
+  // TODO: this sometimes leaves empty snek pieces -- not empty, 'tail' is just off by a couple of grid spaces
+  console.log("Eating food");
+  let body = makeSnekBody(snekIndex, newIndex-1);
   addPieceToTail(body, snekIndex, x, y, newIndex);
   removeItemFromStage(drops.food);
   drops.food = null;
@@ -197,18 +204,16 @@ function snekSelfEats(x, y) {
 function absorbSelfEat(snekIndex) {
   if (sneks[snekIndex].selfEat) {
     sneks[snekIndex].selfEat = false;
-    removeItemFromStage(drops.selfEat);
     sneks[snekIndex].selfEatPiece.removeFrom(sneks[snekIndex].pieces[0]);
-    stage.update();
-    drops.selfEat = null;
   } else {
     sneks[snekIndex].selfEat = true;
-    removeItemFromStage(drops.selfEat);
-    drops.selfEat = null;
     let mse = createMiniSelfEat();
     mse.center(sneks[snekIndex].pieces[0]);
     sneks[snekIndex].selfEatPiece = mse;
   }
+  removeItemFromStage(drops.selfEat);
+  drops.selfEat = null;
+  stage.update();
 }
 
 function snekReflects(x, y) {
@@ -216,19 +221,30 @@ function snekReflects(x, y) {
 }
 
 function absorbReflection(snekIndex) {
-  sneks[snekIndex].reflection = true;
+  if (sneks[snekIndex].reflection) {
+    sneks[snekIndex].reflection = false;
+    let head = makeSnekHead(sneks[snekIndex].pieces[0].direction, sneks[snekIndex].selfEat, snekIndex);
+    head.addTo(stage).pos(convertGridToCoord(sneks[snekIndex].headStartGridX), convertGridToCoord(sneks[snekIndex].headStartGridY));
+    head.xGrid = sneks[snekIndex].pieces[0].xGrid;
+    head.yGrid = sneks[snekIndex].pieces[0].yGrid;
+    head.direction = sneks[snekIndex].pieces[0].direction;
+    removeItemFromStage(sneks[snekIndex].pieces[0]);
+    updateSnekPieces(snekIndex, 0, head);
+    sneks[snekIndex].pieces[0] = head;
+  } else {
+    sneks[snekIndex].reflection = true;
+    let invertedHead = makeInvertedHead(sneks[snekIndex].pieces[0].direction, sneks[snekIndex].selfEat, snekIndex);
+    invertedHead.addTo(stage).pos(convertGridToCoord(sneks[snekIndex].headStartGridX), convertGridToCoord(sneks[snekIndex].headStartGridY));
+    invertedHead.xGrid = sneks[snekIndex].pieces[0].xGrid;
+    invertedHead.yGrid = sneks[snekIndex].pieces[0].yGrid;
+    invertedHead.direction = sneks[snekIndex].pieces[0].direction;
+    removeItemFromStage(sneks[snekIndex].pieces[0]);
+    updateSnekPieces(snekIndex, 0, invertedHead);
+    sneks[snekIndex].pieces[0] = invertedHead;
+  }
   removeItemFromStage(drops.reflection);
   drops.reflection = null;
-  let invertedHead = makeInvertedHead(sneks[snekIndex].pieces[0].direction, sneks[snekIndex].selfEat, snekIndex);
-
-  invertedHead.addTo(stage).pos(convertGridToCoord(sneks[snekIndex].headStartGridX), convertGridToCoord(sneks[snekIndex].headStartGridY));
-  invertedHead.xGrid = sneks[snekIndex].pieces[0].xGrid;
-  invertedHead.yGrid = sneks[snekIndex].pieces[0].yGrid;
-  invertedHead.direction = sneks[snekIndex].pieces[0].direction;
-  removeItemFromStage(sneks[snekIndex].pieces[0]);
-  updateSnekPieces(snekIndex, 0, invertedHead);
-
-  sneks[snekIndex].pieces[0] = invertedHead;
+  stage.update();
 }
 
 function randomlyPlaceFood() {
@@ -271,7 +287,7 @@ function randomlyPlaceSpecialDrop(testing) {
         let totalDrops = ["speedup", "slowdown", "selfEat", "reflection"];
         let nonPlacedDrops = populateNonPlacedDrops();
 
-        let dropsToChooseFrom = totalDrops.filter(value => nonPlacedDrops.includes(value));
+        let dropsToChooseFrom = totalDrops.filter(placedDrop => nonPlacedDrops.includes(placedDrop));
 
         if (dropsToChooseFrom.length > 0) {
           let result = Math.floor(Math.random() * Math.floor(dropsToChooseFrom.length));
