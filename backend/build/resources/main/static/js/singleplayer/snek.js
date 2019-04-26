@@ -1,12 +1,28 @@
 function makeSnekHead(direction) {
-  let head = new zim.Rectangle(37, 37, "red");
-  let eye1 = new zim.Rectangle(4, 4, "black");
-  let eye2 = new zim.Rectangle(4, 4, "black");
+  let head = new Rectangle(37, 37, "red");
+  let eye1 = new Rectangle(4, 4, "black");
+  let eye2 = new Rectangle(4, 4, "black");
 
   positionEyes(head, eye1, eye2, direction);
 
   head.eye1 = eye1;
   head.eye2 = eye2;
+  return head;
+}
+
+function makeInvertedHead(direction, selfEat, snekIndex) {
+  let head = new Rectangle(37, 37, "black");
+  let eye1 = new Rectangle(4, 4, "red");
+  let eye2 = new Rectangle(4, 4, "red");
+
+  positionEyes(head, eye1, eye2, direction);
+
+  head.eye1 = eye1;
+  head.eye2 = eye2;
+
+  if (selfEat) {
+    sneks[snekIndex].selfEatPiece.center(head);
+  }
   return head;
 }
 

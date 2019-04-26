@@ -28,19 +28,18 @@ function initGrid() {
       grid[i][j] = 0;
     }
   }
-  //console.log(grid);
 }
 
 function gameClock() {
-  let clock = interval(110, function () {
+  let clock = interval(100, function () {
     makeSnekMoves();
     randomlyPlaceFood();
     randomlyPlaceSpecialDrop(false);
     // TODO: Handle end game
     if (gameOver) {
       clock.clear();
-      console.log(rezz);
       zog("Game over");
+      playAgain();
     }
   });
 }
@@ -124,6 +123,7 @@ function makeSnekMoves() {
 
           if (snekReflects(nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
             console.log("reflecting");
+            absorbReflection(i);
           }
 
           let nextXMove = nextHeadPositions[i].nextX, nextYMove = nextHeadPositions[i].nextY;
@@ -195,12 +195,20 @@ function snekSelfEats(x, y) {
 }
 
 function absorbSelfEat(snekIndex) {
-  sneks[snekIndex].selfEat = true;
-  removeItemFromStage(drops.selfEat);
-  drops.selfEat = null;
-  // add self eat to head
-  let mse = createMiniSelfEat();
-  mse.center(sneks[snekIndex].pieces[0]);
+  if (sneks[snekIndex].selfEat) {
+    sneks[snekIndex].selfEat = false;
+    removeItemFromStage(drops.selfEat);
+    sneks[snekIndex].selfEatPiece.removeFrom(sneks[snekIndex].pieces[0]);
+    stage.update();
+    drops.selfEat = null;
+  } else {
+    sneks[snekIndex].selfEat = true;
+    removeItemFromStage(drops.selfEat);
+    drops.selfEat = null;
+    let mse = createMiniSelfEat();
+    mse.center(sneks[snekIndex].pieces[0]);
+    sneks[snekIndex].selfEatPiece = mse;
+  }
 }
 
 function snekReflects(x, y) {
@@ -208,20 +216,22 @@ function snekReflects(x, y) {
 }
 
 function absorbReflection(snekIndex) {
-  // invert head colour
+  sneks[snekIndex].reflection = true;
+  removeItemFromStage(drops.reflection);
+  drops.reflection = null;
+  let invertedHead = makeInvertedHead(sneks[snekIndex].pieces[0].direction, sneks[snekIndex].selfEat, snekIndex);
+
+  invertedHead.addTo(stage).pos(convertGridToCoord(sneks[snekIndex].headStartGridX), convertGridToCoord(sneks[snekIndex].headStartGridY));
+  invertedHead.xGrid = sneks[snekIndex].pieces[0].xGrid;
+  invertedHead.yGrid = sneks[snekIndex].pieces[0].yGrid;
+  invertedHead.direction = sneks[snekIndex].pieces[0].direction;
+  removeItemFromStage(sneks[snekIndex].pieces[0]);
+  updateSnekPieces(snekIndex, 0, invertedHead);
+
+  sneks[snekIndex].pieces[0] = invertedHead;
 }
 
 function randomlyPlaceFood() {
-  // Place random item at random location
-  // Items to choose from: Manga, speed up, slow down, reflection, self-immunity
-  // Changes: Manga 14/20, speed-up 2/20, slow-down 2/20, reflection 1/20, self-immunity 1/20
-  //addItemToStage(createFood());
-  // Update: always place food, but maybe sometimes place something else
-
-  // Decide whether to also place another item
-  // Also need to consider removing an item (maybe put a timer on it)
-
-
   if (drops.food === null) {
     let freeCoords = getFreeCoords();
     let food = createFood();
@@ -254,15 +264,14 @@ function randomlyPlaceSpecialDrop(testing) {
     mf.yGrid = 17;
     addItemToStage(mf);
   } else {
-    if (drops.speedup === null || drops.slowdown === null) {
-      let res = Math.floor(Math.random() * Math.floor(10));
+    if (drops.speedup === null || drops.slowdown === null || drops.selfEat === null || drops.reflection === null) {
+      let res = Math.floor(Math.random() * Math.floor(10)); // TODO: set to 100 for live
       rezz[res]++;
       if (res === 0) { // placing drop
         let totalDrops = ["speedup", "slowdown", "selfEat", "reflection"];
         let nonPlacedDrops = populateNonPlacedDrops();
 
         let dropsToChooseFrom = totalDrops.filter(value => nonPlacedDrops.includes(value));
-        console.log("D: " + dropsToChooseFrom);
 
         if (dropsToChooseFrom.length > 0) {
           let result = Math.floor(Math.random() * Math.floor(dropsToChooseFrom.length));
@@ -274,7 +283,6 @@ function randomlyPlaceSpecialDrop(testing) {
             su.yGrid = freeCoords.y;
             drops.speedup = su;
             addItemToStage(su);
-            console.log("adding su");
           } else if (dropToPlace === "slowdown") {
             let sd = createSlowdown();
             let freeCoords = getFreeCoords();
@@ -282,7 +290,6 @@ function randomlyPlaceSpecialDrop(testing) {
             sd.yGrid = freeCoords.y;
             drops.slowdown = sd;
             addItemToStage(sd);
-            console.log("adding sd");
           } else if (dropToPlace === "selfEat") {
             let se = createSelfEat();
             let freeCoords = getFreeCoords();
@@ -290,7 +297,6 @@ function randomlyPlaceSpecialDrop(testing) {
             se.yGrid = freeCoords.y;
             drops.selfEat = se;
             addItemToStage(se);
-            console.log("adding se");
           } else if (dropToPlace === "reflection") {
             let r = createReflection();
             let freeCoords = getFreeCoords();
@@ -298,7 +304,6 @@ function randomlyPlaceSpecialDrop(testing) {
             r.yGrid = freeCoords.y;
             drops.reflection = r;
             addItemToStage(r);
-            console.log("adding r");
           }
         }
       }

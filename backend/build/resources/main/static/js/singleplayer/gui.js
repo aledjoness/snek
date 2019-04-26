@@ -10,8 +10,8 @@ function init_gui(_stage, _stageW, _stageH, _noOfSneks) {
   // init_grid_mapper(_stage, _stageW, _stageH);
 
   // 589145 94c185
-  var backgroundColour = convertColor("#94c185", "rgba", 1);
-  var canvasFrame = new zim.Rectangle({
+  let backgroundColour = convertColor("#94c185", "rgba", 1);
+  let canvasFrame = new zim.Rectangle({
     width: stageW,
     height: stageH,
     color: backgroundColour,
@@ -20,7 +20,6 @@ function init_gui(_stage, _stageW, _stageH, _noOfSneks) {
   });
   canvasFrame.center(stage);
 
-  // Add frame to ;
   printGrid();
   stage.update();
 
@@ -34,7 +33,7 @@ function init_gui(_stage, _stageW, _stageH, _noOfSneks) {
 }
 
 function printGrid() {
-  var line;
+  let line;
   for (let i = 0; i < 35; i++) {
     line = new Rectangle(1, 684, convertColor("#589145", "rgba", 1));
     line.addTo(stage);
@@ -49,12 +48,23 @@ function printGrid() {
 
 function makeSnek(_noOfSneks) {
   for (let i = 0; i < _noOfSneks; i++) {
+
+    // TODO: make init snek default values method
+    if (sneks[i].selfEat) {
+      sneks[i].selfEat = false;
+      sneks[i].selfEatPiece.removeFrom(sneks[i].pieces[0]);
+      sneks[i].selfEatPiece = null;
+    }
+    sneks[i].reflection = false;
+
     let snekHead = makeSnekHead(sneks[i].headStartDirection);
     snekHead.addTo(stage).pos(convertGridToCoord(sneks[i].headStartGridX), convertGridToCoord(sneks[i].headStartGridY));
     snekHead.xGrid = sneks[i].headStartGridX;
     snekHead.yGrid = sneks[i].headStartGridY;
     snekHead.direction = sneks[i].headStartDirection;
     updateSnekPieces(i, 0, snekHead);
+    sneks[i].neckDirection = sneks[i].neckStartDirection;
+    sneks[i].nextMove = sneks[i].headStartDirection;
     let prevGridTileX = sneks[i].headStartGridX;
     let prevGridTileY = sneks[i].headStartGridY;
     for (let j = 0; j < 4; j++) {
@@ -103,7 +113,7 @@ function removeItemFromStage(item) {
 
 function killSnek(snekIndex) {
   let snekToTheSlaughter = sneks[snekIndex];
-  sneks[snekIndex] = null;
+  //sneks[snekIndex] = null;
 
   for (let i = 0; i < Object.keys(snekToTheSlaughter.pieces).length; i++) {
     snekToTheSlaughter.pieces[i].animate({
@@ -115,6 +125,24 @@ function killSnek(snekIndex) {
 
   // If singleplayer - stop game
   gameOver = true;
+}
+
+function playAgain() {
+  let pa = new Button({width:350, height:150, label:"Play Again", backgroundColor:convertColor("#0042ad", "rgba", 1),
+    rollBackgroundColor:convertColor("#1a62d8", "rgba", 1), borderColor: "black", borderWidth:3});
+  pa.center(stage);
+  pa.on("click", function () {
+    stage.removeAllChildren();
+    stage.update();
+
+    gameOver = false;
+    drops.food = null;
+    drops.speedup = null;
+    drops.slowdown = null;
+    drops.selfEat = null;
+    drops.reflection = null;
+    init_gui(stage, stageW, stageH, 1);
+  });
 }
 
 
