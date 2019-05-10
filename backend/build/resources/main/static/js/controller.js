@@ -27,7 +27,7 @@ function initGrid() {
 }
 
 function countdown() {
-  let timeoutMillis = 700;
+  let timeoutMillis = 500;
   let labSize = 75;
   let color = "white";
   let outlineColor = "black";
@@ -59,7 +59,7 @@ function countdown() {
         timeout(timeoutMillis, () => {
           removeItemFromStage(lab);
           gameClock();
-          zog("Starting again");
+          console.log("Starting again");
           window.addEventListener("keydown", processKeyPressEvent);
         })
       })
@@ -67,16 +67,22 @@ function countdown() {
   })
 }
 
-
 function gameClock() {
   let clock = interval(100, function () {
-    makeSnekMoves();
-    //randomlyPlaceFood();
+
+    for (let i = 0; i < 1; i++) {
+      makeSnekMove(i);
+    }
+
+    updateSneks(noOfSnakes);
+
+    makeAdditionalSnekMoves();
+
     randomlyPlaceDrops(false);
-    // TODO: Handle end game
+
     if (gameOver) {
       clock.clear();
-      zog("Game over");
+      console.log("Game over");
       window.removeEventListener("keydown", processKeyPressEvent);
       playAgain();
     }
@@ -130,72 +136,101 @@ let processKeyPressEvent = (event) => {
   }
 };
 
-function makeSnekMoves() {
-  let nextHeadPositions = [];
-  for (let i = 0; i < 1; i++) { // TODO: update for multiple sneks
-    if (sneks[i] !== null) {
-      if (nextMoveIsInBounds(sneks[i].pieces[0].xGrid, sneks[i].pieces[0].yGrid, sneks[i].nextMove)) {
-        nextHeadPositions[i] = nextHeadGridLocation(sneks[i].pieces[0].xGrid, sneks[i].pieces[0].yGrid, sneks[i].nextMove);
+function makeSnekMove(snekIndex) {
+  let nextHeadPosition = {};
+  if (sneks[snekIndex] !== null) {
+    if (snekShouldMove(snekIndex)) {
+      if (nextMoveIsInBounds(sneks[snekIndex].pieces[0].xGrid, sneks[snekIndex].pieces[0].yGrid, sneks[snekIndex].nextMove, sneks[snekIndex].reflection)) {
+        nextHeadPosition[snekIndex] = nextHeadGridLocation(sneks[snekIndex].pieces[0].xGrid, sneks[snekIndex].pieces[0].yGrid, sneks[snekIndex].nextMove);
 
-        if (snekEatsItselfOrOtherSnek(i, nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
-          killSnek(i);
+        if (snekEatsItselfOrOtherSnek(snekIndex, nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
+          console.log("Snek eats itself");
+          killSnek(snekIndex);
         } else {
-          grid[nextHeadPositions[i].nextX][nextHeadPositions[i].nextY] = 1;
+          grid[nextHeadPosition[snekIndex].nextX][nextHeadPosition[snekIndex].nextY] = 1;
 
           let growSnek = false;
-          if (snekEatsFood(nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
+          if (snekEatsFood(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
             growSnek = true;
           }
 
-          if (snekSpeedsUp(nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
-            console.log("speeding up");
+          if (snekSpeedsUp(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
+            absorbSpeedUp(snekIndex);
           }
 
-          if (snekSlowsDown(nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
-            console.log("slowing down");
+          if (snekSlowsDown(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
+            absorbSlowDown(snekIndex);
           }
 
-          if (snekSelfEats(nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
-            console.log("self eat");
-            absorbSelfEat(i);
+          if (snekSelfEats(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
+            absorbSelfEat(snekIndex);
           }
 
-          if (snekReflects(nextHeadPositions[i].nextX, nextHeadPositions[i].nextY)) {
-            console.log("reflecting");
-            absorbReflection(i);
+          if (snekReflects(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
+            absorbReflection(snekIndex);
           }
 
-          let nextXMove = nextHeadPositions[i].nextX, nextYMove = nextHeadPositions[i].nextY;
-          for (let j = 0; j < Object.keys(sneks[i].pieces).length; j++) {
-            let prevXPlacement = sneks[i].pieces[j].xGrid, prevYPlacement = sneks[i].pieces[j].yGrid;
+          let nextXMove = nextHeadPosition[snekIndex].nextX, nextYMove = nextHeadPosition[snekIndex].nextY;
+          for (let j = 0; j < Object.keys(sneks[snekIndex].pieces).length; j++) {
+            let prevXPlacement = sneks[snekIndex].pieces[j].xGrid, prevYPlacement = sneks[snekIndex].pieces[j].yGrid;
 
-            sneks[i].pieces[j].xGrid = nextXMove;
-            sneks[i].pieces[j].yGrid = nextYMove;
+            sneks[snekIndex].pieces[j].xGrid = nextXMove;
+            sneks[snekIndex].pieces[j].yGrid = nextYMove;
 
             nextXMove = prevXPlacement;
             nextYMove = prevYPlacement;
 
-            if (j === Object.keys(sneks[i].pieces).length - 1) {
+            if (j === Object.keys(sneks[snekIndex].pieces).length - 1) {
               if (growSnek) {
-                eatFood(i, nextXMove, nextYMove, j + 1);
-                printSnekPiecesArrays(1);
+                eatFood(snekIndex, nextXMove, nextYMove, j + 1);
                 growSnek = false;
-                // TODO: bring head to front
-                sneks[i].pieces[0].addTo(stage);
+                sneks[snekIndex].pieces[0].addTo(stage);
               } else {
-                grid[sneks[i].pieces[j].xGrid][sneks[i].pieces[j].yGrid] = 0;
+                grid[nextXMove][nextYMove] = 0;
               }
             }
           }
-          sneks[i].neckDirection = sneks[i].nextMove;
+          sneks[snekIndex].neckDirection = sneks[snekIndex].nextMove;
         }
       } else {
-        nextHeadPositions[i] = null;
-        killSnek(i);
+        nextHeadPosition[snekIndex] = null;
+        killSnek(snekIndex);
       }
     }
   }
-  updateSneks(noOfSnakes);
+}
+
+function makeAdditionalSnekMoves() {
+  for (let i = 0; i < 1; i++) {
+    if (sneks[i].speedup) {
+      if (sneks[i].speedup % 2 !== 0) {
+        timeout(50, () => {
+          makeSnekMove(i);
+          updateSingleSnek(i);
+        });
+      }
+      sneks[i].speedup--;
+    }
+    if (sneks[i].speedup === 0) {
+      sneks[i].speedup = null;
+    }
+  }
+}
+
+function snekShouldMove(snekIndex) {
+  if (sneks[snekIndex].slowdown) {
+    if (sneks[snekIndex].slowdown % 2 === 0) {
+      sneks[snekIndex].slowdown--;
+      return false;
+    } else {
+      sneks[snekIndex].slowdown--;
+      return true;
+    }
+  }
+  if (sneks[snekIndex].slowdown === 0) {
+    sneks[snekIndex].slowdown = null;
+  }
+  return true;
 }
 
 function snekEatsItselfOrOtherSnek(snekIndex, nextX, nextY) {
@@ -207,6 +242,7 @@ function snekEatsItselfOrOtherSnek(snekIndex, nextX, nextY) {
         }
       }
     } else { // TODO: this logic broke fam, snek goes straight through other snek
+      console.log("Next X: " + nextX + " next Y: " + nextY);
       return true;
     }
   }
@@ -237,6 +273,26 @@ function snekSelfEats(x, y) {
   return drops.selfEat !== null && x === drops.selfEat.xGrid && y === drops.selfEat.yGrid;
 }
 
+function absorbSpeedUp(snekIndex) {
+  if (sneks[snekIndex].slowdown) {
+    sneks[snekIndex].slowdown = null;
+  }
+  sneks[snekIndex].speedup = 60;
+  removeItemFromStage(drops.speedup);
+  drops.speedup = null;
+  stage.update();
+}
+
+function absorbSlowDown(snekIndex) {
+  if (sneks[snekIndex].speedup) {
+    sneks[snekIndex].speedup = null;
+  }
+  sneks[snekIndex].slowdown = 60;
+  removeItemFromStage(drops.slowdown);
+  drops.slowdown = null;
+  stage.update();
+}
+
 function absorbSelfEat(snekIndex) {
   if (sneks[snekIndex].selfEat) {
     sneks[snekIndex].selfEat = false;
@@ -257,27 +313,22 @@ function snekReflects(x, y) {
 }
 
 function absorbReflection(snekIndex) {
+  let head;
   if (sneks[snekIndex].reflection) {
     sneks[snekIndex].reflection = false;
-    let head = makeSnekHead(sneks[snekIndex].pieces[0].direction, sneks[snekIndex].selfEat, snekIndex);
-    head.addTo(stage).pos(convertGridToCoord(sneks[snekIndex].headStartGridX), convertGridToCoord(sneks[snekIndex].headStartGridY));
-    head.xGrid = sneks[snekIndex].pieces[0].xGrid;
-    head.yGrid = sneks[snekIndex].pieces[0].yGrid;
-    head.direction = sneks[snekIndex].pieces[0].direction;
-    removeItemFromStage(sneks[snekIndex].pieces[0]);
-    updateSnekPieces(snekIndex, 0, head);
-    sneks[snekIndex].pieces[0] = head;
+    head = makeSnekHead(sneks[snekIndex].pieces[0].direction, sneks[snekIndex].selfEat, snekIndex);
   } else {
     sneks[snekIndex].reflection = true;
-    let invertedHead = makeInvertedHead(sneks[snekIndex].pieces[0].direction, sneks[snekIndex].selfEat, snekIndex);
-    invertedHead.addTo(stage).pos(convertGridToCoord(sneks[snekIndex].headStartGridX), convertGridToCoord(sneks[snekIndex].headStartGridY));
-    invertedHead.xGrid = sneks[snekIndex].pieces[0].xGrid;
-    invertedHead.yGrid = sneks[snekIndex].pieces[0].yGrid;
-    invertedHead.direction = sneks[snekIndex].pieces[0].direction;
-    removeItemFromStage(sneks[snekIndex].pieces[0]);
-    updateSnekPieces(snekIndex, 0, invertedHead);
-    sneks[snekIndex].pieces[0] = invertedHead;
+    head = makeInvertedHead(sneks[snekIndex].pieces[0].direction, sneks[snekIndex].selfEat, snekIndex);
   }
+  head.addTo(stage).pos(convertGridToCoord(sneks[snekIndex].headStartGridX), convertGridToCoord(sneks[snekIndex].headStartGridY));
+  head.xGrid = sneks[snekIndex].pieces[0].xGrid;
+  head.yGrid = sneks[snekIndex].pieces[0].yGrid;
+  head.direction = sneks[snekIndex].pieces[0].direction;
+  removeItemFromStage(sneks[snekIndex].pieces[0]);
+  updateSnekPieces(snekIndex, 0, head);
+
+  sneks[snekIndex].pieces[0] = head;
   removeItemFromStage(drops.reflection);
   drops.reflection = null;
   stage.update();
@@ -421,7 +472,10 @@ function squareNotFree(proposedX, proposedY) {
   return false;
 }
 
-function nextMoveIsInBounds(currentX, currentY, direction) {
+function nextMoveIsInBounds(currentX, currentY, direction, canReflect) {
+  if (canReflect) {
+    return true;
+  }
   if (direction === Direction.NORTH && (currentY - 1 < 0)) {
     return false;
   } else if (direction === Direction.SOUTH && (currentY + 1 > 18)) {
@@ -439,13 +493,17 @@ function nextHeadGridLocation(currentX, currentY, direction) {
   result.nextX = currentX;
   result.nextY = currentY;
   if (direction === Direction.NORTH) {
-    result.nextY--;
+    if (--result.nextY < 0) {
+      result.nextY = 18;
+    }
   } else if (direction === Direction.SOUTH) {
-    result.nextY++;
+    result.nextY = (result.nextY + 1) % 19;
   } else if (direction === Direction.EAST) {
-    result.nextX++;
+    result.nextX = (result.nextX + 1) % 35;
   } else if (direction === Direction.WEST) {
-    result.nextX--;
+    if (--result.nextX < 0) {
+      result.nextX = 34;
+    }
   }
   return result;
 }

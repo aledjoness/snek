@@ -7,9 +7,6 @@ function init_gui(_stage, _stageW, _stageH, _noOfSneks) {
   stageW = _stageW;
   stageH = _stageH;
 
-  // init_grid_mapper(_stage, _stageW, _stageH);
-
-  // 589145 94c185
   let backgroundColour = convertColor("#94c185", "rgba", 1);
   let canvasFrame = new zim.Rectangle({
     width: stageW,
@@ -21,13 +18,10 @@ function init_gui(_stage, _stageW, _stageH, _noOfSneks) {
   canvasFrame.center(stage);
 
   printGrid();
-  stage.update();
 
   init_controller(_noOfSneks);
 
   makeSnek(_noOfSneks);
-
-  // init_controller(_noOfSneks);
 
   stage.update();
 }
@@ -56,6 +50,7 @@ function makeSnek(_noOfSneks) {
       sneks[i].selfEatPiece.removeFrom(sneks[i].pieces[0]);
       sneks[i].selfEatPiece = null;
     }
+    sneks[i].slowdown = null;
     sneks[i].reflection = false;
 
     let snekHead = makeSnekHead(sneks[i].headStartDirection, false, i);
@@ -75,7 +70,7 @@ function makeSnek(_noOfSneks) {
       prevGridTileY = prevGridTileCoords.newPrevGridTileY;
       body.xGrid = prevGridTileX;
       body.yGrid = prevGridTileY;
-      updateSnekPieces(i, j+1, body);
+      updateSnekPieces(i, j + 1, body);
     }
   }
 }
@@ -90,6 +85,15 @@ function updateSneks(_noOfSnakes) {
       for (let j = 0; j < Object.keys(sneks[i].pieces).length; j++) {
         moveSnekPiece(sneks[i].pieces[j], sneks[i].pieces[j].xGrid, sneks[i].pieces[j].yGrid);
       }
+    }
+  }
+  stage.update();
+}
+
+function updateSingleSnek(snekIndex) {
+  if (sneks[snekIndex] !== null) {
+    for (let j = 0; j < Object.keys(sneks[snekIndex].pieces).length; j++) {
+      moveSnekPiece(sneks[snekIndex].pieces[j], sneks[snekIndex].pieces[j].xGrid, sneks[snekIndex].pieces[j].yGrid);
     }
   }
   stage.update();
@@ -114,23 +118,29 @@ function removeItemFromStage(item) {
 
 function killSnek(snekIndex) {
   let snekToTheSlaughter = sneks[snekIndex];
-  //sneks[snekIndex] = null;
 
   for (let i = 0; i < Object.keys(snekToTheSlaughter.pieces).length; i++) {
     snekToTheSlaughter.pieces[i].animate({
-      props:{alpha:0},
-      time:450,
-      from:false
+      props: {alpha: 0},
+      time: 450,
+      from: false
     });
   }
+
+  // TODO: print out grid to see if 1 is at tail
 
   // If singleplayer - stop game
   gameOver = true;
 }
 
 function playAgain() {
-  let pa = new Button({width:350, height:150, label:"Play Again", backgroundColor:convertColor("#0042ad", "rgba", 1),
-    rollBackgroundColor:convertColor("#1a62d8", "rgba", 1), borderColor: "black", borderWidth:3});
+  let lab = new Label({
+    text: "Play Again", size: 50, color: "white", outlineColor: "black"
+  });
+  let pa = new Button({
+    width: 300, height: 110, label: lab, backgroundColor: convertColor("#0042ad", "rgba", 1),
+    rollBackgroundColor: convertColor("#1a62d8", "rgba", 1), borderColor: "black", borderWidth: 3
+  });
   pa.center(stage);
   pa.on("click", function () {
     stage.removeAllChildren();

@@ -13,6 +13,8 @@ snek1.headStartDirection = Direction.SOUTH;
 snek1.neckStartDirection = snek1.headStartDirection;
 snek1.neckDirection = Direction.SOUTH;
 snek1.nextMove = snek1.neckStartDirection;
+snek1.speedup = null;
+snek1.slowdown = null;
 snek1.selfEat = false;
 snek1.selfEatPiece = null;
 snek1.reflection = false;
@@ -25,6 +27,8 @@ snek2.headStartDirection = Direction.NORTH;
 snek2.neckStartDirection = snek2.headStartDirection;
 snek2.neckDirection = Direction.NORTH;
 snek2.nextMove = snek2.neckStartDirection;
+snek2.speedup = null;
+snek2.slowdown = null;
 snek2.selfEat = false;
 snek2.selfEatPiece = null;
 snek2.reflection = false;
@@ -37,6 +41,8 @@ snek3.headStartDirection = Direction.WEST;
 snek3.neckStartDirection = snek3.headStartDirection;
 snek3.neckDirection = Direction.WEST;
 snek3.nextMove = snek3.neckStartDirection;
+snek3.speedup = null;
+snek3.slowdown = null;
 snek3.selfEat = false;
 snek3.selfEatPiece = null;
 snek3.reflection = false;
@@ -49,6 +55,8 @@ snek4.headStartDirection = Direction.EAST;
 snek4.neckStartDirection = snek4.headStartDirection;
 snek4.neckDirection = Direction.EAST;
 snek4.nextMove = snek4.neckStartDirection;
+snek4.speedup = null;
+snek4.slowdown = null;
 snek4.selfEat = false;
 snek4.selfEatPiece = null;
 snek4.reflection = false;
@@ -72,12 +80,30 @@ function updateSnekPieces(snekIndex, pieceIndex, snekPiece) {
 function printSnekPiecesArrays(_noOfSneks) {
   for (let i = 0; i < _noOfSneks; i++) {
     let res = "Snek[" + i + "]: ";
-    zog("SIZE:" + Object.keys(sneks[i].pieces).length);
+    console.log("SIZE:" + Object.keys(sneks[i].pieces).length);
     for (let j = 0; j < Object.keys(sneks[i].pieces).length; j++) {
       res += j + ": (" + sneks[i].pieces[j].xGrid + "," + sneks[i].pieces[j].yGrid + ") ";
     }
-    zog(res);
+    console.log(res);
   }
+}
+
+function printUnderlyingGrid(grid) {
+  // let top = "[ ] ";
+  // for (let i = 0; i < 19; i++) {
+  //   top += i + " ";
+  // }
+  //console.log(top);
+  let res = "";
+  for (let i = 0; i < grid.length; i++) {
+    i < 10 ? res += "[" + i + " ] " : res += "[" + i + "] ";
+    for (let j = 0; j < grid[i].length; j++) {
+      res += grid[i][j] + " ";
+    }
+    res += "\n";
+  }
+  console.log(res);
+  console.log(grid);
 }
 
 function clearNextMoves() {

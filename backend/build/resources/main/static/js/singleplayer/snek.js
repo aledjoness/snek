@@ -54,7 +54,6 @@ function attachSnekPiece(snekBody, prevGridTileX, prevGridTileY, directionToAddT
 
 function addPieceToTail(snekBody, snekIndex, x, y, newIndex) {
   snekBody.addTo(stage).pos(convertGridToCoord(x), convertGridToCoord(y)); // need to adjust x/y value by 1/-1
-  console.log("Adding to (" + x + "," + y + ")");
   snekBody.xGrid = x;
   snekBody.yGrid = y;
   updateSnekPieces(snekIndex, newIndex, snekBody);
