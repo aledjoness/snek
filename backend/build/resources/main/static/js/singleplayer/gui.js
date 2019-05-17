@@ -1,11 +1,13 @@
 let stage;
 let stageW;
 let stageH;
+let noOfSneks;
 
 function init_gui(_stage, _stageW, _stageH, _noOfSneks) {
   stage = _stage;
   stageW = _stageW;
   stageH = _stageH;
+  noOfSneks = _noOfSneks;
 
   let backgroundColour = convertColor("#94c185", "rgba", 1);
   let canvasFrame = new zim.Rectangle({
@@ -52,6 +54,7 @@ function makeSnek(_noOfSneks) {
     }
     sneks[i].slowdown = null;
     sneks[i].reflection = false;
+    sneks[i].dead = false;
 
     let snekHead = makeSnekHead(sneks[i].headStartDirection, false, i);
     snekHead.addTo(stage).pos(convertGridToCoord(sneks[i].headStartGridX), convertGridToCoord(sneks[i].headStartGridY));
@@ -76,7 +79,7 @@ function makeSnek(_noOfSneks) {
 }
 
 function turnHead(newDirection) {
-  updateHeadDirection(sneks[0].pieces[0], newDirection);
+  updateHeadDirection(sneks[0].pieces[0], newDirection, 0);
 }
 
 function updateSneks(_noOfSnakes) {
@@ -115,11 +118,13 @@ function removeItemFromStage(item) {
   stage.update();
 }
 
-
+// TODO: clean up grid after death
 function killSnek(snekIndex) {
   let snekToTheSlaughter = sneks[snekIndex];
+  sneks[snekIndex].dead = true;
 
   for (let i = 0; i < Object.keys(snekToTheSlaughter.pieces).length; i++) {
+    grid[snekToTheSlaughter.pieces[i].xGrid][snekToTheSlaughter.pieces[i].yGrid] = 0;
     snekToTheSlaughter.pieces[i].animate({
       props: {alpha: 0},
       time: 450,
@@ -127,18 +132,43 @@ function killSnek(snekIndex) {
     });
   }
 
-  // TODO: print out grid to see if 1 is at tail
+  let noOfDead = 0;
+  for (let i = 0; i < noOfSneks; i++) {
+    if (sneks[i].dead) {
+      noOfDead++;
+    }
+  }
+  if (sneks[0].dead || noOfDead === noOfSneks || noOfDead === noOfSneks - 1) {
+    gameOver = true;
+  }
 
-  // If singleplayer - stop game
-  gameOver = true;
+  if (gameOver) {
+    for (let i = 0; i < noOfSneks; i++) {
+      if (!sneks[i].dead) {
+        wiggleSnek(i);
+      }
+    }
+  }
+}
+
+function wiggleSnek(snekIndex) {
+  console.log(snekIndex + " is the winner!");
+
+  for (let i = 0; i < Object.keys(sneks[snekIndex].pieces).length; i++) {
+    if (i % 2 === 0) {
+      sneks[snekIndex].pieces[i].wiggle("x", sneks[snekIndex].pieces[i].x, 10, 30, 300, 1000);
+    } else {
+      sneks[snekIndex].pieces[i].wiggle("y", sneks[snekIndex].pieces[i].y, 10, 30, 300, 1000);
+    }
+  }
 }
 
 function playAgain() {
-  let lab = new Label({
+  let playAgainLab = new Label({
     text: "Play Again", size: 50, color: "white", outlineColor: "black"
   });
   let pa = new Button({
-    width: 300, height: 110, label: lab, backgroundColor: convertColor("#0042ad", "rgba", 1),
+    width: 300, height: 110, label: playAgainLab, backgroundColor: convertColor("#0042ad", "rgba", 1),
     rollBackgroundColor: convertColor("#1a62d8", "rgba", 1), borderColor: "black", borderWidth: 3
   });
   pa.center(stage);
@@ -152,7 +182,7 @@ function playAgain() {
     drops.slowdown = null;
     drops.selfEat = null;
     drops.reflection = null;
-    init_gui(stage, stageW, stageH, 1);
+    init_gui(stage, stageW, stageH, noOfSneks);
   });
 }
 

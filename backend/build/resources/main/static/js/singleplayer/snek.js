@@ -63,7 +63,7 @@ function moveSnekPiece(snekBody, newGridX, newGridY) {
   snekBody.pos(convertGridToCoord(newGridX), convertGridToCoord(newGridY));
 }
 
-function updateHeadDirection(head, newDirection) {
+function updateHeadDirection(head, newDirection, snekIndex) {
   if (newDirection === "Left") {
     head.direction = leftDirection(head.direction);
   } else if (newDirection === "Right") {
@@ -71,7 +71,7 @@ function updateHeadDirection(head, newDirection) {
   } else if (newDirection === "Opposite") {
     head.direction = oppositeDirection(head.direction);
   }
-  sneks[0].nextMove = head.direction;
+  sneks[snekIndex].nextMove = head.direction;
   positionEyes(head, head.eye1, head.eye2, head.direction);
   stage.update();
 }

@@ -4,6 +4,7 @@ let rezz;
 let grid;
 
 function init_controller(_noOfSnakes) {
+  // noOfSnakes = 1;
   noOfSnakes = _noOfSnakes;
   rezz = [];
   for (let i = 0; i < 100; i++) {
@@ -70,7 +71,11 @@ function countdown() {
 function gameClock() {
   let clock = interval(100, function () {
 
-    for (let i = 0; i < 1; i++) {
+    for (let i = 1; i < noOfSnakes; i++) {
+      calculateNextCpuHeadDirection(i);
+    }
+
+    for (let i = 0; i < noOfSnakes; i++) {
       makeSnekMove(i);
     }
 
@@ -138,13 +143,15 @@ let processKeyPressEvent = (event) => {
 
 function makeSnekMove(snekIndex) {
   let nextHeadPosition = {};
-  if (sneks[snekIndex] !== null) {
+  if (sneks[snekIndex] !== null && !sneks[snekIndex].dead) {
     if (snekShouldMove(snekIndex)) {
       if (nextMoveIsInBounds(sneks[snekIndex].pieces[0].xGrid, sneks[snekIndex].pieces[0].yGrid, sneks[snekIndex].nextMove, sneks[snekIndex].reflection)) {
         nextHeadPosition[snekIndex] = nextHeadGridLocation(sneks[snekIndex].pieces[0].xGrid, sneks[snekIndex].pieces[0].yGrid, sneks[snekIndex].nextMove);
 
+        printUnderlyingGrid(grid);
+
         if (snekEatsItselfOrOtherSnek(snekIndex, nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
-          console.log("Snek eats itself");
+          console.log(snekIndex + " eats/kills itself/another");
           killSnek(snekIndex);
         } else {
           grid[nextHeadPosition[snekIndex].nextX][nextHeadPosition[snekIndex].nextY] = 1;
@@ -201,7 +208,7 @@ function makeSnekMove(snekIndex) {
 }
 
 function makeAdditionalSnekMoves() {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < noOfSnakes; i++) {
     if (sneks[i].speedup) {
       if (sneks[i].speedup % 2 !== 0) {
         timeout(50, () => {
@@ -235,14 +242,15 @@ function snekShouldMove(snekIndex) {
 
 function snekEatsItselfOrOtherSnek(snekIndex, nextX, nextY) {
   if (grid[nextX][nextY] === 1) {
+    console.log("Grid === 1 for " + snekIndex + " at " + nextX + "," + nextY);
     if (sneks[snekIndex].selfEat) { // check if another snek
       for (let i = 0; i < Object.keys(sneks[snekIndex].pieces).length; i++) {
         if (nextX === sneks[snekIndex].pieces[i].xGrid && nextY === sneks[snekIndex].pieces[i].yGrid) {
           return false;
         }
       }
-    } else { // TODO: this logic broke fam, snek goes straight through other snek
-      console.log("Next X: " + nextX + " next Y: " + nextY);
+      return true;
+    } else {
       return true;
     }
   }
