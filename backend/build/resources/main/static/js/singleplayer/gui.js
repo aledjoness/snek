@@ -118,7 +118,6 @@ function removeItemFromStage(item) {
   stage.update();
 }
 
-// TODO: clean up grid after death
 function killSnek(snekIndex) {
   let snekToTheSlaughter = sneks[snekIndex];
   sneks[snekIndex].dead = true;
@@ -140,9 +139,40 @@ function killSnek(snekIndex) {
   }
   if (sneks[0].dead || noOfDead === noOfSneks || noOfDead === noOfSneks - 1) {
     gameOver = true;
+
+    for (let i = 0; i < noOfSneks; i++) {
+      if (!sneks[i].dead) {
+        wiggleSnek(i);
+      }
+    }
+  }
+}
+
+function killSneks(sneksToKill) {
+  sneksToKill.forEach((snek) => {
+    let snekToTheSlaughter = sneks[snek];
+    snekToTheSlaughter.dead = true;
+
+    for (let i = 0; i < Object.keys(snekToTheSlaughter.pieces).length; i++) {
+      grid[snekToTheSlaughter.pieces[i].xGrid][snekToTheSlaughter.pieces[i].yGrid] = 0;
+      snekToTheSlaughter.pieces[i].animate({
+        props: {alpha: 0},
+        time: 450,
+        from: false
+      });
+    }
+  });
+
+  let noOfDead = 0;
+  for (let i = 0; i < noOfSneks; i++) {
+    if (sneks[i].dead) {
+      noOfDead++;
+    }
   }
 
-  if (gameOver) {
+  if (sneks[0].dead || noOfDead >= noOfSneks - 1) {
+    gameOver = true;
+
     for (let i = 0; i < noOfSneks; i++) {
       if (!sneks[i].dead) {
         wiggleSnek(i);

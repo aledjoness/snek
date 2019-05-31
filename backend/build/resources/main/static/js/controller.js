@@ -4,7 +4,6 @@ let rezz;
 let grid;
 
 function init_controller(_noOfSnakes) {
-  // noOfSnakes = 1;
   noOfSnakes = _noOfSnakes;
   rezz = [];
   for (let i = 0; i < 100; i++) {
@@ -148,11 +147,16 @@ function makeSnekMove(snekIndex) {
       if (nextMoveIsInBounds(sneks[snekIndex].pieces[0].xGrid, sneks[snekIndex].pieces[0].yGrid, sneks[snekIndex].nextMove, sneks[snekIndex].reflection)) {
         nextHeadPosition[snekIndex] = nextHeadGridLocation(sneks[snekIndex].pieces[0].xGrid, sneks[snekIndex].pieces[0].yGrid, sneks[snekIndex].nextMove);
 
-        printUnderlyingGrid(grid);
+        //printUnderlyingGrid(grid);
 
+        // So this gets evaluated first, maybe need to keep grid ==1 for snek just died? see if there was a head on collision
+        // or just check for head on collision???
         if (snekEatsItselfOrOtherSnek(snekIndex, nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
-          console.log(snekIndex + " eats/kills itself/another");
-          killSnek(snekIndex);
+          if (snekInvolvedInHeadOnCollision(snekIndex, nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
+            killSneksInvolvedInHeadOnCollision(snekIndex, nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY);
+          } else {
+            killSneks([snekIndex]);
+          }
         } else {
           grid[nextHeadPosition[snekIndex].nextX][nextHeadPosition[snekIndex].nextY] = 1;
 
@@ -201,7 +205,7 @@ function makeSnekMove(snekIndex) {
         }
       } else {
         nextHeadPosition[snekIndex] = null;
-        killSnek(snekIndex);
+        killSneks([snekIndex]);
       }
     }
   }
@@ -242,7 +246,6 @@ function snekShouldMove(snekIndex) {
 
 function snekEatsItselfOrOtherSnek(snekIndex, nextX, nextY) {
   if (grid[nextX][nextY] === 1) {
-    console.log("Grid === 1 for " + snekIndex + " at " + nextX + "," + nextY);
     if (sneks[snekIndex].selfEat) { // check if another snek
       for (let i = 0; i < Object.keys(sneks[snekIndex].pieces).length; i++) {
         if (nextX === sneks[snekIndex].pieces[i].xGrid && nextY === sneks[snekIndex].pieces[i].yGrid) {
@@ -255,6 +258,31 @@ function snekEatsItselfOrOtherSnek(snekIndex, nextX, nextY) {
     }
   }
   return false;
+}
+
+function snekInvolvedInHeadOnCollision(snekIndex, nextX, nextY) {
+  for (let i = 0; i < noOfSnakes; i++) {
+    if (i !== snekIndex
+        && !sneks[i].dead
+        && sneks[i].pieces[0].xGrid === nextX
+        && sneks[i].pieces[0].yGrid === nextY
+        && sneks[snekIndex].neckDirection === oppositeDirection(sneks[i].neckDirection)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function killSneksInvolvedInHeadOnCollision(snekIndex, nextX, nextY) {
+  for (let i = 0; i < noOfSnakes; i++) {
+    if (i !== snekIndex
+        && !sneks[i].dead
+        && sneks[i].pieces[0].xGrid === nextX
+        && sneks[i].pieces[0].yGrid === nextY
+        && sneks[snekIndex].neckDirection === oppositeDirection(sneks[i].neckDirection)) {
+      killSneks([snekIndex, i]);
+    }
+  }
 }
 
 function snekEatsFood(nextX, nextY) {

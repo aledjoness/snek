@@ -111,7 +111,7 @@ function printUnderlyingGrid(grid) {
     res += "\n";
   }
   console.log(res);
-  console.log(grid);
+  // console.log(grid);
 }
 
 function clearNextMoves() {
