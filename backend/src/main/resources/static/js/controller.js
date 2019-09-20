@@ -3,6 +3,9 @@ let gameOver = false;
 let rezz;
 let grid;
 
+const X_AXIS_LEN = 35;
+const Y_AXIS_LEN = 19;
+
 function init_controller(_noOfSnakes) {
   noOfSnakes = _noOfSnakes;
   rezz = [];
@@ -14,9 +17,9 @@ function init_controller(_noOfSnakes) {
 }
 
 function initGrid() {
-  grid = new Array(35);
+  grid = new Array(X_AXIS_LEN);
   for (let i = 0; i < grid.length; i++) {
-    grid[i] = new Array(19);
+    grid[i] = new Array(Y_AXIS_LEN);
   }
 
   for (let i = 0; i < grid.length; i++) {
@@ -199,7 +202,8 @@ function makeSnekMove(snekIndex) {
 
           let nextXMove = nextHeadPosition[snekIndex].nextX, nextYMove = nextHeadPosition[snekIndex].nextY;
           for (let currentPiece = 0; currentPiece < Object.keys(sneks[snekIndex].pieces).length; currentPiece++) {
-            let prevXPlacement = sneks[snekIndex].pieces[currentPiece].xGrid, prevYPlacement = sneks[snekIndex].pieces[currentPiece].yGrid;
+            let prevXPlacement = sneks[snekIndex].pieces[currentPiece].xGrid,
+                prevYPlacement = sneks[snekIndex].pieces[currentPiece].yGrid;
 
             sneks[snekIndex].pieces[currentPiece].xGrid = nextXMove;
             sneks[snekIndex].pieces[currentPiece].yGrid = nextYMove;
@@ -506,12 +510,12 @@ function populateNonPlacedDrops() {
 }
 
 function getFreeCoords() {
-  let proposedX = Math.floor(Math.random() * Math.floor(35));
-  let proposedY = Math.floor(Math.random() * Math.floor(19));
+  let proposedX = Math.floor(Math.random() * Math.floor(X_AXIS_LEN));
+  let proposedY = Math.floor(Math.random() * Math.floor(Y_AXIS_LEN));
 
   while (squareNotFree(proposedX, proposedY)) {
-    proposedX = Math.floor(Math.random() * Math.floor(35));
-    proposedY = Math.floor(Math.random() * Math.floor(19));
+    proposedX = Math.floor(Math.random() * Math.floor(X_AXIS_LEN));
+    proposedY = Math.floor(Math.random() * Math.floor(Y_AXIS_LEN));
   }
   return {x: proposedX, y: proposedY};
 }
@@ -519,7 +523,7 @@ function getFreeCoords() {
 function squareNotFree(proposedX, proposedY) {
   // Go through each snek piece and see if it resides at (proposedX, proposedY)
   for (let i = 0; i < noOfSnakes; i++) {
-    if (sneks[i] !== null) {
+    if (snekIsAliveAndWell(i)) {
       for (let j = 0; j < Object.keys(sneks[i].pieces).length; j++) {
         if (sneks[i].pieces[j].xGrid === proposedX && sneks[i].pieces[j].yGrid === proposedY) {
           return true;
@@ -551,9 +555,9 @@ function nextMoveIsInBounds(currentX, currentY, direction, canReflect) {
   }
   if (direction === Direction.NORTH && (currentY - 1 < 0)) {
     return false;
-  } else if (direction === Direction.SOUTH && (currentY + 1 > 18)) {
+  } else if (direction === Direction.SOUTH && (currentY + 1 > Y_AXIS_LEN - 1)) {
     return false;
-  } else if (direction === Direction.EAST && (currentX + 1 > 34)) {
+  } else if (direction === Direction.EAST && (currentX + 1 > X_AXIS_LEN - 1)) {
     return false;
   } else if (direction === Direction.WEST && (currentX - 1 < 0)) {
     return false;
@@ -567,15 +571,15 @@ function nextHeadGridLocation(currentX, currentY, direction) {
   result.nextY = currentY;
   if (direction === Direction.NORTH) {
     if (--result.nextY < 0) {
-      result.nextY = 18;
+      result.nextY = Y_AXIS_LEN - 1;
     }
   } else if (direction === Direction.SOUTH) {
-    result.nextY = (result.nextY + 1) % 19;
+    result.nextY = (result.nextY + 1) % Y_AXIS_LEN;
   } else if (direction === Direction.EAST) {
-    result.nextX = (result.nextX + 1) % 35;
+    result.nextX = (result.nextX + 1) % X_AXIS_LEN;
   } else if (direction === Direction.WEST) {
     if (--result.nextX < 0) {
-      result.nextX = 34;
+      result.nextX = X_AXIS_LEN - 1;
     }
   }
   return result;
