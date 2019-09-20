@@ -1,0 +1,110 @@
+{{> header}}
+<title>Snek</title>
+<script src="https://d309knd7es5f10.cloudfront.net/createjs_1.1_min.js"></script>
+<script src="https://d309knd7es5f10.cloudfront.net/zim_9.5.1.js"></script>
+<script src="/js/lib.js"></script>
+<script src="/js/singleplayer/gui.js"></script>
+<script src="/js/singleplayer/snek.js"></script>
+<script src="/js/singleplayer/cpu.js"></script>
+<script src="/js/grid-mapper.js"></script>
+<script src="/js/drops.js"></script>
+<script src="/js/controller.js"></script>
+</head>
+<body>
+{{> topnav}}
+
+<style>
+  body {
+    background-color: #ccc;
+  }
+
+  article {
+    font-size: 14px;
+    font-family: verdana;
+    padding: 20px;
+    margin: 20px;
+    color: #555;
+    position: relative;
+    width: 60%;
+    border: thin solid #888;
+  }
+
+  #holder {
+    position: relative;
+    margin: 20px 0px;
+  }
+
+  /*
+  zim Frame makes a canvas tag and adds it to the div called holder
+  the id of canvas tag is holderCanvas (Frame adds the word Canvas to the holder id)
+  here we are using CSS to scale the canvas but the stage dimensions stay fixed to the values provided to Frame
+  */
+  #holderCanvas {
+    width: 80%;
+  }
+</style>
+
+<script>
+
+  // SCALING OPTIONS
+  // scaling can have values as follows with full being the default
+  // "fit"		sets canvas and stage to dimensions and scales to fit inside window size
+  // "outside"	sets canvas and stage to dimensions and scales to fit outside window size
+  // "full"		sets stage to window size with no scaling
+  // "tagID"		add canvas to HTML tag of ID - set to dimensions if provided - no scaling
+
+  var scaling = "holder"; // use the ID of a tag to place the canvas in the tag
+
+  // 35 x 19 grid (+1/+1 to accommodate entire snake in each tile)
+  var width = 1267;//512;//1024; // 1260+6   can go higher... 1238/658 // 1303
+  var height = 691;//384;//768; // 672 = 36 684+6
+  var color = convertColor("#efefef", "rgba"); // ZIM colors now available globally
+  var frame = new Frame({scaling: scaling, width: width, height: height, color: color, align: "center"}); // see docs for more options and info
+  frame.on("ready", function () {
+    zog("ready from ZIM Frame");
+
+    var stage = frame.stage;
+    var stageW = frame.width;
+    var stageH = frame.height;
+
+    var startLabelBox = new Rectangle(600, 60, "white", "black", 4);
+    startLabelBox.center(stage);
+    startLabelBox.mov(0, -250);
+    var startLabel = new Label("Select Number of Other Sneks"); // ffb200 ffc030 e21818
+    startLabel.center(startLabelBox);
+
+    var oneButton = new Button(100, 100, "0", "green", convertColor("#22c11d", "rgba", 1)).center(stage).mov(-150, 0);
+    var twoButton = new Button(100, 100, "1", "orange", convertColor("#ffc030", "rgba", 1)).center(stage);
+    var threeButton = new Button(100, 100, "2", convertColor("#c91616", "rgba", 1), convertColor("#ff0000", "rgba", 1)).center(stage).mov(150, 0);
+
+    stage.update();
+
+    oneButton.on("click", function () {
+      stage.removeAllChildren();
+      stage.update();
+
+      init_gui(stage, stageW, stageH, 1);
+    });
+    twoButton.on("click", function () {
+      stage.removeAllChildren();
+      stage.update();
+
+      init_gui(stage, stageW, stageH, 2);
+    });
+    threeButton.on("click", function () {
+      stage.removeAllChildren();
+      stage.update();
+
+      init_gui(stage, stageW, stageH, 3);
+    });
+
+  }); // end of ready
+
+</script>
+
+<div class="row mr-0 justify-content-md-center">
+  <div class="col-10 mt-5" id="holder" style="text-align:center"></div>
+</div>
+
+</body>
+</html>

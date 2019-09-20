@@ -149,7 +149,7 @@ function killSnek(snekIndex) {
 }
 
 function killSneks(sneksToKill) {
-  sneksToKill.forEach((snek) => {
+  sneksToKill.forEach(snek => {
     let snekToTheSlaughter = sneks[snek];
     snekToTheSlaughter.dead = true;
 
@@ -182,7 +182,7 @@ function killSneks(sneksToKill) {
 }
 
 function wiggleSnek(snekIndex) {
-  console.log(snekIndex + " is the winner!");
+  // console.log(snekIndex + " is the winner!");
 
   for (let i = 0; i < Object.keys(sneks[snekIndex].pieces).length; i++) {
     if (i % 2 === 0) {

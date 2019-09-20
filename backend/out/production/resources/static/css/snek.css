@@ -1,0 +1,19 @@
+body {
+    background-color: #efefef;
+}
+
+.page-not-found {
+    cursor: default;
+    font-family: 'Marker Felt', Arial, serif;
+    font-size: 60px;
+}
+
+.snek-logo:hover {
+    -webkit-transform: scale(1.3);
+    -ms-transform: scale(1.3);
+    transform: scale(1.3);
+
+    background: -webkit-linear-gradient(left, red, yellow, springgreen, cyan, violet) !important;
+    color:transparent !important;
+    -webkit-background-clip: text !important;
+}

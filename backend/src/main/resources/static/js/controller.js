@@ -59,7 +59,6 @@ function countdown() {
         timeout(timeoutMillis, () => {
           removeItemFromStage(lab);
           gameClock();
-          console.log("Starting again");
           window.addEventListener("keydown", processKeyPressEvent);
         })
       })
@@ -86,7 +85,6 @@ function gameClock() {
 
     if (gameOver) {
       clock.clear();
-      console.log("Game over");
       window.removeEventListener("keydown", processKeyPressEvent);
       playAgain();
     }

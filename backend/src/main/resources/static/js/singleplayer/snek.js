@@ -76,6 +76,13 @@ function updateHeadDirection(head, newDirection, snekIndex) {
   stage.update();
 }
 
+function updateHeadDirectionDirectly(snekIndex, newDirection) {
+  sneks[snekIndex].pieces[0].direction = newDirection;
+  sneks[snekIndex].nextMove = newDirection;
+  positionEyes(sneks[snekIndex].pieces[0], sneks[snekIndex].pieces[0].eye1,
+      sneks[snekIndex].pieces[0].eye2, sneks[snekIndex].pieces[0].direction);
+}
+
 function positionEyes(head, eye1, eye2, direction) {
   eye1.center(head);
   eye2.center(head);
