@@ -93,8 +93,13 @@ function gameClock() {
 
 let processKeyPressEvent = (event) => {
   let keyPressed = event.key;
-  if (sneks[0] !== null) {
-    if (sneks[0].pieces[0].direction === Direction.NORTH) {
+
+  function headIsFacing(direction) {
+    return sneks[0].pieces[0].direction === direction;
+  }
+
+  if (snekIsAliveAndWell(0)) {
+    if (headIsFacing(Direction.NORTH)) {
       if (keyPressed === "ArrowLeft" && sneks[0].neckDirection !== Direction.EAST) {
         turnHead("Left");
       }
@@ -104,7 +109,7 @@ let processKeyPressEvent = (event) => {
       if (keyPressed === "ArrowDown" && sneks[0].neckDirection !== Direction.NORTH) {
         turnHead("Opposite");
       }
-    } else if (sneks[0].pieces[0].direction === Direction.EAST) {
+    } else if (headIsFacing(Direction.EAST)) {
       if (keyPressed === "ArrowUp" && sneks[0].neckDirection !== Direction.SOUTH) {
         turnHead("Left");
       }
@@ -114,7 +119,7 @@ let processKeyPressEvent = (event) => {
       if (keyPressed === "Left" && sneks[0].neckDirection !== Direction.EAST) {
         turnHead("Opposite");
       }
-    } else if (sneks[0].pieces[0].direction === Direction.SOUTH) {
+    } else if (headIsFacing(Direction.SOUTH)) {
       if (keyPressed === "ArrowLeft" && sneks[0].neckDirection !== Direction.EAST) {
         turnHead("Right");
       }
@@ -124,7 +129,7 @@ let processKeyPressEvent = (event) => {
       if (keyPressed === "ArrowUp" && sneks[0].neckDirection !== Direction.SOUTH) {
         turnHead("Opposite");
       }
-    } else if (sneks[0].pieces[0].direction === Direction.WEST) {
+    } else if (headIsFacing(Direction.WEST)) {
       if (keyPressed === "ArrowUp" && sneks[0].neckDirection !== Direction.SOUTH) {
         turnHead("Right");
       }
@@ -138,10 +143,37 @@ let processKeyPressEvent = (event) => {
   }
 };
 
+function snekIsAliveAndWell(snekIndex) {
+  return sneks[snekIndex] !== null && !sneks[snekIndex].dead;
+}
+
 function makeSnekMove(snekIndex) {
   let nextHeadPosition = {};
-  if (sneks[snekIndex] !== null && !sneks[snekIndex].dead) {
-    if (snekShouldMove(snekIndex)) {
+
+  function iteratingOnTail(piece) {
+    return piece === Object.keys(sneks[snekIndex].pieces).length - 1;
+  }
+
+  function pickupDrops() {
+    if (snekSpeedsUp(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
+      absorbSpeedUp(snekIndex);
+    }
+
+    if (snekSlowsDown(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
+      absorbSlowDown(snekIndex);
+    }
+
+    if (snekSelfEats(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
+      absorbSelfEat(snekIndex);
+    }
+
+    if (snekReflects(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
+      absorbReflection(snekIndex);
+    }
+  }
+
+  if (snekIsAliveAndWell(snekIndex)) {
+    if (snekCanMove(snekIndex)) {
       if (nextMoveIsInBounds(sneks[snekIndex].pieces[0].xGrid, sneks[snekIndex].pieces[0].yGrid, sneks[snekIndex].nextMove, sneks[snekIndex].reflection)) {
         nextHeadPosition[snekIndex] = nextHeadGridLocation(sneks[snekIndex].pieces[0].xGrid, sneks[snekIndex].pieces[0].yGrid, sneks[snekIndex].nextMove);
 
@@ -158,41 +190,27 @@ function makeSnekMove(snekIndex) {
         } else {
           grid[nextHeadPosition[snekIndex].nextX][nextHeadPosition[snekIndex].nextY] = 1;
 
-          let growSnek = false;
+          let needToGrowSnek = false;
           if (snekEatsFood(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
-            growSnek = true;
+            needToGrowSnek = true;
           }
 
-          if (snekSpeedsUp(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
-            absorbSpeedUp(snekIndex);
-          }
-
-          if (snekSlowsDown(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
-            absorbSlowDown(snekIndex);
-          }
-
-          if (snekSelfEats(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
-            absorbSelfEat(snekIndex);
-          }
-
-          if (snekReflects(nextHeadPosition[snekIndex].nextX, nextHeadPosition[snekIndex].nextY)) {
-            absorbReflection(snekIndex);
-          }
+          pickupDrops();
 
           let nextXMove = nextHeadPosition[snekIndex].nextX, nextYMove = nextHeadPosition[snekIndex].nextY;
-          for (let j = 0; j < Object.keys(sneks[snekIndex].pieces).length; j++) {
-            let prevXPlacement = sneks[snekIndex].pieces[j].xGrid, prevYPlacement = sneks[snekIndex].pieces[j].yGrid;
+          for (let currentPiece = 0; currentPiece < Object.keys(sneks[snekIndex].pieces).length; currentPiece++) {
+            let prevXPlacement = sneks[snekIndex].pieces[currentPiece].xGrid, prevYPlacement = sneks[snekIndex].pieces[currentPiece].yGrid;
 
-            sneks[snekIndex].pieces[j].xGrid = nextXMove;
-            sneks[snekIndex].pieces[j].yGrid = nextYMove;
+            sneks[snekIndex].pieces[currentPiece].xGrid = nextXMove;
+            sneks[snekIndex].pieces[currentPiece].yGrid = nextYMove;
 
             nextXMove = prevXPlacement;
             nextYMove = prevYPlacement;
 
-            if (j === Object.keys(sneks[snekIndex].pieces).length - 1) {
-              if (growSnek) {
-                eatFood(snekIndex, nextXMove, nextYMove, j + 1);
-                growSnek = false;
+            if (iteratingOnTail(currentPiece)) {
+              if (needToGrowSnek) {
+                eatFood(snekIndex, nextXMove, nextYMove, currentPiece + 1);
+                needToGrowSnek = false;
                 sneks[snekIndex].pieces[0].addTo(stage);
               } else {
                 grid[nextXMove][nextYMove] = 0;
@@ -226,8 +244,13 @@ function makeAdditionalSnekMoves() {
   }
 }
 
-function snekShouldMove(snekIndex) {
-  if (sneks[snekIndex].slowdown) {
+function snekCanMove(snekIndex) {
+
+  function slowdownActive() {
+    return sneks[snekIndex].slowdown;
+  }
+
+  if (slowdownActive()) {
     if (sneks[snekIndex].slowdown % 2 === 0) {
       sneks[snekIndex].slowdown--;
       return false;
@@ -243,9 +266,18 @@ function snekShouldMove(snekIndex) {
 }
 
 function snekEatsItselfOrOtherSnek(snekIndex, nextX, nextY) {
-  if (grid[nextX][nextY] === 1) {
+
+  function lengthOfSnek() {
+    return Object.keys(sneks[snekIndex].pieces).length;
+  }
+
+  function gridIsPopulatedByASnek() {
+    return grid[nextX][nextY] === 1;
+  }
+
+  if (gridIsPopulatedByASnek()) {
     if (sneks[snekIndex].selfEat) { // check if another snek
-      for (let i = 0; i < Object.keys(sneks[snekIndex].pieces).length; i++) {
+      for (let i = 0; i < lengthOfSnek(); i++) {
         if (nextX === sneks[snekIndex].pieces[i].xGrid && nextY === sneks[snekIndex].pieces[i].yGrid) {
           return false;
         }
@@ -272,11 +304,20 @@ function snekInvolvedInHeadOnCollision(snekIndex, nextX, nextY) {
 }
 
 function killSneksInvolvedInHeadOnCollision(snekIndex, nextX, nextY) {
+
+  function currentX() {
+    return sneks[i].pieces[0].xGrid;
+  }
+
+  function currentY() {
+    return sneks[i].pieces[0].yGrid;
+  }
+
   for (let i = 0; i < noOfSnakes; i++) {
     if (i !== snekIndex
         && !sneks[i].dead
-        && sneks[i].pieces[0].xGrid === nextX
-        && sneks[i].pieces[0].yGrid === nextY
+        && currentX() === nextX
+        && currentY() === nextY
         && sneks[snekIndex].neckDirection === oppositeDirection(sneks[i].neckDirection)) {
       killSneks([snekIndex, i]);
     }
@@ -288,8 +329,7 @@ function snekEatsFood(nextX, nextY) {
 }
 
 function eatFood(snekIndex, x, y, newIndex) {
-  let body = makeSnekBody(snekIndex, newIndex - 1);
-  addPieceToTail(body, snekIndex, x, y, newIndex);
+  addPieceToTail(makeSnekBody(snekIndex, newIndex - 1), snekIndex, x, y, newIndex);
   removeItemFromStage(drops.food);
   drops.food = null;
 }
