@@ -1,32 +1,36 @@
-function makeSnekHead(direction, selfEat, snekIndex) {
-  let head = new Rectangle(37, 37, "red");
+function makeRunnerHead(direction) {
+  let head = new Rectangle(35, 35, "green");
+  runner.head = head;
   let eye1 = new Rectangle(4, 4, "black");
   let eye2 = new Rectangle(4, 4, "black");
 
-  positionEyes(head, eye1, eye2, direction);
+  positionEyes(eye1, eye2, direction);
 
   head.eye1 = eye1;
   head.eye2 = eye2;
 
-  if (selfEat) {
-    sneks[snekIndex].selfEatPiece.center(head);
-  }
+  // snekHead.xGrid = sneks[i].headStartGridX;
+  // snekHead.yGrid = sneks[i].headStartGridY;
+
+  // if (selfEat) {
+  //   sneks[snekIndex].selfEatPiece.center(head);
+  // }
   return head;
 }
 
 function makeInvertedHead(direction, selfEat, snekIndex) {
-  let head = new Rectangle(37, 37, "black");
+  let head = new Rectangle(36, 36, "black");
   let eye1 = new Rectangle(4, 4, "red");
   let eye2 = new Rectangle(4, 4, "red");
 
-  positionEyes(head, eye1, eye2, direction);
+  positionEyes(eye1, eye2, direction);
 
   head.eye1 = eye1;
   head.eye2 = eye2;
 
-  if (selfEat) {
-    sneks[snekIndex].selfEatPiece.center(head);
-  }
+  // if (selfEat) {
+  //   sneks[snekIndex].selfEatPiece.center(head);
+  // }
   return head;
 }
 
@@ -63,29 +67,29 @@ function moveSnekPiece(snekBody, newGridX, newGridY) {
   snekBody.pos(convertGridToCoord(newGridX), convertGridToCoord(newGridY));
 }
 
-function updateHeadDirection(head, newDirection, snekIndex) {
-  if (newDirection === "Left") {
-    head.direction = leftDirection(head.direction);
-  } else if (newDirection === "Right") {
-    head.direction = rightDirection(head.direction);
-  } else if (newDirection === "Opposite") {
-    head.direction = oppositeDirection(head.direction);
-  }
-  sneks[snekIndex].nextMove = head.direction;
-  positionEyes(head, head.eye1, head.eye2, head.direction);
+function moveRunnerHead(newGridX, newGridY) {
+  runner.head.pos(convertGridToCoord(newGridX), convertGridToCoord(newGridY));
+}
+
+function updateHeadDirection(newDirection) {
+  positionEyes(runner.head.eye1, runner.head.eye2, newDirection);
   stage.update();
 }
 
-function updateHeadDirectionDirectly(snekIndex, newDirection) {
-  sneks[snekIndex].pieces[0].direction = newDirection;
-  sneks[snekIndex].nextMove = newDirection;
-  positionEyes(sneks[snekIndex].pieces[0], sneks[snekIndex].pieces[0].eye1,
-      sneks[snekIndex].pieces[0].eye2, sneks[snekIndex].pieces[0].direction);
+function moveHeadOneSpace() {
+
 }
 
-function positionEyes(head, eye1, eye2, direction) {
-  eye1.center(head);
-  eye2.center(head);
+// function updateHeadDirectionDirectly(snekIndex, newDirection) {
+//   sneks[snekIndex].pieces[0].direction = newDirection;
+//   sneks[snekIndex].nextMove = newDirection;
+//   positionEyes(sneks[snekIndex].pieces[0], sneks[snekIndex].pieces[0].eye1,
+//       sneks[snekIndex].pieces[0].eye2, sneks[snekIndex].pieces[0].direction);
+// }
+
+function positionEyes(eye1, eye2, direction) {
+  eye1.center(runner.head);
+  eye2.center(runner.head);
   if (direction === Direction.NORTH) {
     eye1.mov(8, -12); // 12 or 16
     eye2.mov(-8, -12);
@@ -99,6 +103,6 @@ function positionEyes(head, eye1, eye2, direction) {
     eye1.mov(-12, 8); // 12 or 16
     eye2.mov(-12, -8);
   }
-  head.eye1 = eye1;
-  head.eye2 = eye2;
+  runner.head.eye1 = eye1;
+  runner.head.eye2 = eye2;
 }

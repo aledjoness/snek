@@ -1,10 +1,10 @@
 {{> header}}
-<title>Snek</title>
+<title>TheRunner</title>
 <script src="https://d309knd7es5f10.cloudfront.net/createjs_1.1_min.js"></script>
 <script src="https://d309knd7es5f10.cloudfront.net/zim_9.5.1.js"></script>
 <script src="/js/lib.js"></script>
 <script src="/js/singleplayer/gui.js"></script>
-<script src="/js/singleplayer/snek.js"></script>
+<script src="/js/singleplayer/runner.js"></script>
 <script src="/js/singleplayer/cpu.js"></script>
 <script src="/js/grid-mapper.js"></script>
 <script src="/js/drops.js"></script>
@@ -15,7 +15,7 @@
 
 <style>
   body {
-    background-color: #ccc;
+    background-color: #cccccc;
   }
 
   article {
@@ -53,50 +53,200 @@
   // "full"		sets stage to window size with no scaling
   // "tagID"		add canvas to HTML tag of ID - set to dimensions if provided - no scaling
 
-  var scaling = "holder"; // use the ID of a tag to place the canvas in the tag
+  const scaling = "holder"; // use the ID of a tag to place the canvas in the tag
 
   // 35 x 19 grid (+1/+1 to accommodate entire snake in each tile)
-  var width = 1267;//512;//1024; // 1260+6   can go higher... 1238/658 // 1303
-  var height = 691;//384;//768; // 672 = 36 684+6
-  var color = convertColor("#efefef", "rgba"); // ZIM colors now available globally
-  var frame = new Frame({scaling: scaling, width: width, height: height, color: color, align: "center"}); // see docs for more options and info
+  const width = 1267;//512;//1024; // 1260+6   can go higher... 1238/658 // 1303
+  const height = 691;//384;//768; // 672 = 36 684+6
+  let colour = convertColor("#efefef", "rgba"); // ZIM colors now available globally
+  const frame = new Frame({scaling: scaling, width: width, height: height, color: colour, align: "center"}); // see docs for more options and info
   frame.on("ready", function () {
     zog("ready from ZIM Frame");
 
-    var stage = frame.stage;
-    var stageW = frame.width;
-    var stageH = frame.height;
+    const stage = frame.stage;
+    const stageW = frame.width;
+    let stageH = frame.height;
 
-    var startLabelBox = new Rectangle(600, 60, "white", "black", 4);
-    startLabelBox.center(stage);
-    startLabelBox.mov(0, -250);
-    var startLabel = new Label("Select Number of Other Sneks"); // ffb200 ffc030 e21818
-    startLabel.center(startLabelBox);
+    let border = new Rectangle(1267, 691, "#efefef", "black", 6);
+    border.center(stage);
 
-    var oneButton = new Button(100, 100, "0", "green", convertColor("#22c11d", "rgba", 1)).center(stage).mov(-150, 0);
-    var twoButton = new Button(100, 100, "1", "orange", convertColor("#ffc030", "rgba", 1)).center(stage);
-    var threeButton = new Button(100, 100, "2", convertColor("#c91616", "rgba", 1), convertColor("#ff0000", "rgba", 1)).center(stage).mov(150, 0);
+    let partition = new Rectangle(1265, 200, "grey", "black", 3);
+    partition.center(stage).mov(0, 244);
+
+    let the = new Label({
+      text: "T H E",
+      size: 50,
+      color: "#3ea5e6",
+      outlineColor: "black",
+      outlineWidth: "10",
+      corner: 1
+    });
+    the.center(stage).mov(-110, -250);
+    the.animate({
+      props: {y: 100},
+      loop: true,
+      time: 2000,
+      rewind: true
+    });
+
+    let runner = new Label({
+      text: "R U N N E R",
+      size: 50,
+      color: "red",
+      outlineColor: "black",
+      outlineWidth: "10",
+      corner: 1
+    });
+    runner.center(stage).mov(110, -200);
+    runner.animate({
+      props: {y: 100},
+      loop: true,
+      time: 2000,
+      rewind: true
+    });
+
+
+    // var startLabelBox = new Rectangle(600, 60, "white", "black", 4);
+    // startLabelBox.center(stage);
+    // startLabelBox.mov(0, -250);
+    // var startLabel = new Label("Select Number of Other Sneks"); // ffb200 ffc030 e21818
+    // startLabel.center(startLabelBox);
+
+    let helpLabel = new Label({
+      text: "HELP",
+      size: 25,
+      font: "verdana",
+      color: "black",
+      fontOptions: "bold"
+    });
+
+    let help = new Button({
+      width: 150,
+      height: 100,
+      label: helpLabel,
+      backgroundColor: "orange",
+      rollBackgroundColor: convertColor("#ffc030", "rgba", 1),
+      borderColor: "black",
+      borderWidth: "5"
+    }).center(stage).mov(-100, 245);
+
+    let playLabel = new Label({
+      text: "PLAY",
+      size: 25,
+      font: "verdana",
+      color: "black",
+      fontOptions: "bold"
+    });
+
+    let play = new Button({
+      width: 150,
+      height: 100,
+      label: playLabel,
+      backgroundColor: "green",
+      rollBackgroundColor: convertColor("#22c11d", "rgba", 1),
+      borderColor: "black",
+      borderWidth: "5"
+    }).center(stage).mov(100, 245);
 
     stage.update();
 
-    oneButton.on("click", function () {
-      stage.removeAllChildren();
-      stage.update();
+    // throw random blobs across the screen until play/help
+    //emitStuff();
 
-      init_gui(stage, stageW, stageH, 1);
+    play.on("click", () => {
+      hideNav();
+      hideTitle();
     });
-    twoButton.on("click", function () {
+
+    help.on("click", () => {
       stage.removeAllChildren();
       stage.update();
 
       init_gui(stage, stageW, stageH, 2);
     });
-    threeButton.on("click", function () {
-      stage.removeAllChildren();
-      stage.update();
 
-      init_gui(stage, stageW, stageH, 3);
-    });
+    function hideNav() {
+      play.animate({
+        props: {alpha: 0},
+        time: 450,
+        from: false
+      });
+
+      help.animate({
+        props: {alpha: 0},
+        time: 450,
+        from: false
+      });
+
+      partition.animate({
+        props: {alpha: 0},
+        time: 1200,
+        from: false
+      });
+    }
+
+    function hideTitle() {
+      timeout(200, () => {
+        the.stopAnimate();
+        the.animate({
+          props: {y: 700},
+          time: 1000,
+          rewind: false
+        });
+        runner.stopAnimate();
+        runner.animate({
+          props: {y: -50},
+          time: 1000,
+          rewind: false
+        });
+        timeout(1000, () => {
+          play.dispose();
+          help.dispose();
+          partition.dispose();
+          the.dispose();
+          runner.dispose();
+          init_gui(stage, stageW, stageH);
+        });
+      });
+    }
+
+    // function emitStuff() {
+    //   let v = new Emitter({
+    //     obj: new Circle(2, null, "black", 1),
+    //     random: {color: [frame.blue, frame.green, frame.pink, frame.yellow, frame.orange]},
+    //     trace: true,
+    //     traceFadeTime: 800,
+    //     width: stageW,
+    //     height: stageH,
+    //     traceShiftY: -stageH / 2,
+    //     minAngle: -90 - 15,
+    //     maxAngle: -90 + 15,
+    //     life: 2000,
+    //     decayStart: 1200,
+    //     decayTime: 50,
+    //     startPaused: true,
+    //     fade: true, // default
+    //     gravity: 10, // default
+    //     minForce: 9,
+    //     maxForce: 11,
+    //     layers: "top", // default
+    //     cache: zim.mobile() // default
+    //   }).centerReg(stage)
+    //           .mov(0, 300);
+    //
+    //   let shoot2 = shoot.clone().centerReg(stage).mov(0,300);
+    //
+    //   timeout(2000, function() {shoot2.pause(false)}); // wait to start second
+    //   shoot2.on("decayed", explode); // decayed is when it stops moving - fizz is when it fades out
+    //   shoot2.on("emitted", playSounds);
+    //
+    //   // now that we have cloned the paused first streamer so the second streamer pauses,
+    //   // se the first streamer to unpaused and add the event to set the explosion
+    //   shoot.pause(false);
+    //   // shoot.on("decayed", explode);
+    //   // shoot.on("emitted", playSounds);
+    //
+    // }
 
   }); // end of ready
 

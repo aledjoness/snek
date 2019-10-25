@@ -1,5 +1,5 @@
-function makeSnekHead(direction, selfEat, snekIndex) {
-  let head = new Rectangle(37, 37, "red");
+function makeRunnerHead(direction) {
+  let head = new Rectangle(37, 37, "green");
   let eye1 = new Rectangle(4, 4, "black");
   let eye2 = new Rectangle(4, 4, "black");
 
@@ -8,9 +8,9 @@ function makeSnekHead(direction, selfEat, snekIndex) {
   head.eye1 = eye1;
   head.eye2 = eye2;
 
-  if (selfEat) {
-    sneks[snekIndex].selfEatPiece.center(head);
-  }
+  // if (selfEat) {
+  //   sneks[snekIndex].selfEatPiece.center(head);
+  // }
   return head;
 }
 

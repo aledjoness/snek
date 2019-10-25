@@ -1,16 +1,15 @@
 let stage;
 let stageW;
 let stageH;
-let noOfSneks;
+let canvasFrame;
 
-function init_gui(_stage, _stageW, _stageH, _noOfSneks) {
+function init_gui(_stage, _stageW, _stageH) {
   stage = _stage;
   stageW = _stageW;
   stageH = _stageH;
-  noOfSneks = _noOfSneks;
 
-  let backgroundColour = convertColor("#94c185", "rgba", 1);
-  let canvasFrame = new zim.Rectangle({
+  let backgroundColour = convertColor("#cccccc", "rgba", 1);
+  canvasFrame = new zim.Rectangle({
     width: stageW,
     height: stageH,
     color: backgroundColour,
@@ -21,9 +20,11 @@ function init_gui(_stage, _stageW, _stageH, _noOfSneks) {
 
   printGrid();
 
-  init_controller(_noOfSneks);
+  // makeRunnerHead(Direction.EAST).center(stage);
 
-  makeSnek(_noOfSneks);
+  init_controller();
+  //
+  // makeSnek(_noOfSneks);
 
   stage.update();
 }
@@ -31,13 +32,13 @@ function init_gui(_stage, _stageW, _stageH, _noOfSneks) {
 function printGrid() {
   let line;
   for (let i = 0; i < 35; i++) {
-    line = new Rectangle(1, 684, convertColor("#589145", "rgba", 1));
-    line.addTo(stage);
+    line = new Rectangle(1, 685, convertColor("#e8e8e8", "rgba", 1));
+    line.addTo(canvasFrame);
     line.pos(3 + (36 * (i + 1)), 3);
   }
   for (let i = 0; i < 18; i++) {
-    line = new Rectangle(1260, 1, convertColor("#589145", "rgba", 1));
-    line.addTo(stage);
+    line = new Rectangle(1260, 1, convertColor("#e8e8e8", "rgba", 1));
+    line.addTo(canvasFrame);
     line.pos(3, 3 + (36 * (i + 1)));
   }
 }
@@ -56,7 +57,7 @@ function makeSnek(_noOfSneks) {
     sneks[i].reflection = false;
     sneks[i].dead = false;
 
-    let snekHead = makeSnekHead(sneks[i].headStartDirection, false, i);
+    let snekHead = makeRunnerHead(sneks[i].headStartDirection, false, i);
     snekHead.addTo(stage).pos(convertGridToCoord(sneks[i].headStartGridX), convertGridToCoord(sneks[i].headStartGridY));
     snekHead.xGrid = sneks[i].headStartGridX;
     snekHead.yGrid = sneks[i].headStartGridY;
@@ -79,7 +80,7 @@ function makeSnek(_noOfSneks) {
 }
 
 function turnHead(newDirection) {
-  updateHeadDirection(sneks[0].pieces[0], newDirection, 0);
+  updateHeadDirection(newDirection);
 }
 
 function updateSneks(_noOfSnakes) {
